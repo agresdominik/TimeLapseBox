@@ -92,7 +92,7 @@
             <depend id="18" type="2" difference="0" hardness="Strong"/>
             <depend id="20" type="2" difference="0" hardness="Strong"/>
         </task>
-        <task id="18" name="Software- und Anwendungstests Ausführen" color="#ffffff" shape="1,0,1,0,0,1,0,1,1,0,1,0,0,1,0,1" meeting="false" start="2023-12-11" duration="27" complete="0" thirdDate="2023-11-22" thirdDate-constraint="0" expand="true">
+        <task id="18" name="Tests &amp; Optimisierung" color="#ffffff" shape="1,0,1,0,0,1,0,1,1,0,1,0,0,1,0,1" meeting="false" start="2023-12-11" duration="27" complete="0" thirdDate="2023-11-22" thirdDate-constraint="0" expand="true">
             <depend id="22" type="2" difference="0" hardness="Strong"/>
         </task>
         <task id="20" name="Frontend" color="#ffffff" shape="0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0" meeting="false" start="2023-12-11" duration="20" complete="0" thirdDate="2023-12-11" thirdDate-constraint="0" expand="true">
