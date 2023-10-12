@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?><project name="EmbeddedSystems_TimeLapseBox" company="Based" webLink="" view-date="2023-09-25" view-index="1" gantt-divider-location="543" resource-divider-location="300" version="3.2.3247" locale="en_GB">
+<?xml version="1.0" encoding="UTF-8"?><project name="EmbeddedSystems_TimeLapseBox" company="Based" webLink="" view-date="2023-10-23" view-index="0" gantt-divider-location="459" resource-divider-location="300" version="3.2.3247" locale="en_GB">
     <description/>
-    <view zooming-state="default:6" id="gantt-chart">
-        <field id="tpd3" name="Name" width="300" order="0"/>
-        <field id="tpd4" name="Begin date" width="113" order="1"/>
-        <field id="tpd5" name="End date" width="129" order="2"/>
+    <view zooming-state="default:5" id="gantt-chart">
+        <field id="tpd3" name="Name" width="254" order="0"/>
+        <field id="tpd4" name="Begin date" width="95" order="1"/>
+        <field id="tpd5" name="End date" width="109" order="2"/>
         <option id="filter.completedTasks" value="false"/>
         <option id="color.recent">
-            <![CDATA[#ffffff #330033 #ffffcc #ff3333 #33ff33 #3333ff #6666ff]]>
+            <![CDATA[#ff3333 #000000 #ffffff #330033 #ffffcc #33ff33 #3333ff #6666ff]]>
         </option>
     </view>
     <view id="resource-table">
@@ -92,29 +92,40 @@
             <depend id="18" type="2" difference="0" hardness="Strong"/>
             <depend id="20" type="2" difference="0" hardness="Strong"/>
         </task>
-        <task id="18" name="Software- und Anwendungstests Ausführen" color="#ffffff" shape="1,0,1,0,0,1,0,1,1,0,1,0,0,1,0,1" meeting="false" start="2023-12-11" duration="20" complete="0" thirdDate="2023-11-22" thirdDate-constraint="0" expand="true"/>
-        <task id="20" name="Frontend" color="#ffffff" shape="0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0" meeting="false" start="2023-12-11" duration="27" complete="0" thirdDate="2023-12-11" thirdDate-constraint="0" expand="true"/>
+        <task id="18" name="Software- und Anwendungstests Ausführen" color="#ffffff" shape="1,0,1,0,0,1,0,1,1,0,1,0,0,1,0,1" meeting="false" start="2023-12-11" duration="27" complete="0" thirdDate="2023-11-22" thirdDate-constraint="0" expand="true">
+            <depend id="22" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="20" name="Frontend" color="#ffffff" shape="0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0" meeting="false" start="2023-12-11" duration="20" complete="0" thirdDate="2023-12-11" thirdDate-constraint="0" expand="true">
+            <depend id="21" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="21" name="Final Touch" color="#000000" meeting="false" start="2023-12-31" duration="7" complete="0" thirdDate="2023-12-31" thirdDate-constraint="0" expand="true">
+            <depend id="22" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="22" name="Finale Abgabe" color="#ff3333" meeting="true" start="2024-01-07" duration="0" complete="0" thirdDate="2024-01-07" thirdDate-constraint="0" expand="true"/>
         <task id="15" name="Wandertour zum Turm" color="#ff3333" meeting="true" start="2023-10-17" duration="0" complete="0" thirdDate="2023-10-09" thirdDate-constraint="0" priority="4" expand="true"/>
-        <task id="16" name="Dokumentation" color="#ffffff" shape="1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,1" meeting="false" start="2023-10-09" duration="90" complete="0" thirdDate="2023-09-25" thirdDate-constraint="0" expand="true"/>
+        <task id="16" name="Dokumentation" color="#ffffff" shape="1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,1" meeting="false" start="2023-10-09" duration="90" complete="0" thirdDate="2023-09-25" thirdDate-constraint="0" expand="true">
+            <depend id="22" type="2" difference="0" hardness="Strong"/>
+        </task>
     </tasks>
     <resources>
         <resource id="0" name="Dennis" function="Default:0" contacts="-" phone="-"/>
-        <resource id="1" name="Nirmi" function="Default:1" contacts="" phone=""/>
-        <resource id="2" name="Yaneck" function="Default:1" contacts="" phone=""/>
-        <resource id="3" name="Dominik" function="Default:1" contacts="" phone=""/>
+        <resource id="1" name="Nirmi" function="Default:0" contacts="" phone=""/>
+        <resource id="2" name="Yannick" function="Default:0" contacts="" phone=""/>
+        <resource id="3" name="Dominik" function="Default:0" contacts="" phone=""/>
     </resources>
     <allocations>
         <allocation task-id="0" resource-id="0" function="Default:0" responsible="false" load="100.0"/>
-        <allocation task-id="4" resource-id="0" function="Default:0" responsible="false" load="100.0"/>
-        <allocation task-id="11" resource-id="0" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="4" resource-id="0" function="Default:0" responsible="false" load="0.0"/>
+        <allocation task-id="11" resource-id="0" function="Default:0" responsible="true" load="100.0"/>
         <allocation task-id="9" resource-id="0" function="Default:0" responsible="false" load="100.0"/>
         <allocation task-id="12" resource-id="0" function="Default:0" responsible="true" load="100.0"/>
         <allocation task-id="17" resource-id="0" function="Default:0" responsible="true" load="100.0"/>
         <allocation task-id="18" resource-id="0" function="Default:0" responsible="true" load="100.0"/>
         <allocation task-id="20" resource-id="0" function="Default:0" responsible="false" load="100.0"/>
         <allocation task-id="15" resource-id="0" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="21" resource-id="0" function="Default:0" responsible="false" load="100.0"/>
         <allocation task-id="0" resource-id="1" function="Default:0" responsible="false" load="100.0"/>
-        <allocation task-id="4" resource-id="1" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="4" resource-id="1" function="Default:0" responsible="false" load="0.0"/>
         <allocation task-id="6" resource-id="1" function="Default:0" responsible="true" load="100.0"/>
         <allocation task-id="9" resource-id="1" function="Default:0" responsible="false" load="100.0"/>
         <allocation task-id="12" resource-id="1" function="Default:0" responsible="false" load="100.0"/>
@@ -122,26 +133,29 @@
         <allocation task-id="20" resource-id="1" function="Default:0" responsible="false" load="100.0"/>
         <allocation task-id="16" resource-id="1" function="Default:0" responsible="true" load="100.0"/>
         <allocation task-id="15" resource-id="1" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="21" resource-id="1" function="Default:1" responsible="false" load="100.0"/>
         <allocation task-id="0" resource-id="2" function="Default:0" responsible="false" load="100.0"/>
-        <allocation task-id="4" resource-id="2" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="4" resource-id="2" function="Default:0" responsible="false" load="0.0"/>
         <allocation task-id="8" resource-id="2" function="Default:0" responsible="true" load="100.0"/>
         <allocation task-id="9" resource-id="2" function="Default:1" responsible="true" load="100.0"/>
         <allocation task-id="12" resource-id="2" function="Default:0" responsible="false" load="100.0"/>
-        <allocation task-id="14" resource-id="2" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="14" resource-id="2" function="Default:0" responsible="false" load="50.0"/>
         <allocation task-id="17" resource-id="2" function="Default:0" responsible="false" load="100.0"/>
         <allocation task-id="15" resource-id="2" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="21" resource-id="2" function="Default:1" responsible="false" load="100.0"/>
         <allocation task-id="0" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
-        <allocation task-id="19" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
-        <allocation task-id="4" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="19" resource-id="3" function="Default:0" responsible="true" load="0.0"/>
+        <allocation task-id="4" resource-id="3" function="Default:0" responsible="true" load="0.0"/>
         <allocation task-id="7" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
-        <allocation task-id="11" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="11" resource-id="3" function="Default:0" responsible="false" load="50.0"/>
         <allocation task-id="10" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
         <allocation task-id="12" resource-id="3" function="Default:0" responsible="false" load="100.0"/>
-        <allocation task-id="14" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="14" resource-id="3" function="Default:0" responsible="true" load="50.0"/>
         <allocation task-id="17" resource-id="3" function="Default:0" responsible="false" load="100.0"/>
         <allocation task-id="20" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
         <allocation task-id="15" resource-id="3" function="Default:0" responsible="false" load="100.0"/>
         <allocation task-id="9" resource-id="3" function="Default:1" responsible="false" load="50.0"/>
+        <allocation task-id="21" resource-id="3" function="Default:1" responsible="false" load="100.0"/>
     </allocations>
     <vacations/>
     <previous/>
