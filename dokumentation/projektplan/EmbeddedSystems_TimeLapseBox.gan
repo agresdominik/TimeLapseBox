@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?><project name="EmbeddedSystems_TimeLapseBox" company="Based" webLink="" view-date="2023-09-25" view-index="1" gantt-divider-location="543" resource-divider-location="300" version="3.2.3247" locale="en_GB">
+    <description/>
+    <view zooming-state="default:6" id="gantt-chart">
+        <field id="tpd3" name="Name" width="300" order="0"/>
+        <field id="tpd4" name="Begin date" width="113" order="1"/>
+        <field id="tpd5" name="End date" width="129" order="2"/>
+        <option id="filter.completedTasks" value="false"/>
+        <option id="color.recent">
+            <![CDATA[#ffffff #330033 #ffffcc #ff3333 #33ff33 #3333ff #6666ff]]>
+        </option>
+    </view>
+    <view id="resource-table">
+        <field id="0" name="Name" width="199" order="0"/>
+        <field id="1" name="Default role" width="82" order="1"/>
+    </view>
+    <!-- -->
+    <calendars>
+        <day-types>
+            <day-type id="0"/>
+            <day-type id="1"/>
+            <default-week id="1" name="default" sun="0" mon="0" tue="0" wed="0" thu="0" fri="0" sat="0"/>
+            <only-show-weekends value="false"/>
+            <overriden-day-types/>
+            <days/>
+        </day-types>
+    </calendars>
+    <tasks empty-milestones="true">
+        <taskproperties>
+            <taskproperty id="tpd0" name="type" type="default" valuetype="icon"/>
+            <taskproperty id="tpd1" name="priority" type="default" valuetype="icon"/>
+            <taskproperty id="tpd2" name="info" type="default" valuetype="icon"/>
+            <taskproperty id="tpd3" name="name" type="default" valuetype="text"/>
+            <taskproperty id="tpd4" name="begindate" type="default" valuetype="date"/>
+            <taskproperty id="tpd5" name="enddate" type="default" valuetype="date"/>
+            <taskproperty id="tpd6" name="duration" type="default" valuetype="int"/>
+            <taskproperty id="tpd7" name="completion" type="default" valuetype="int"/>
+            <taskproperty id="tpd8" name="coordinator" type="default" valuetype="text"/>
+            <taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text"/>
+        </taskproperties>
+        <task id="0" name="Projekt Definieren" color="#3333ff" meeting="false" start="2023-10-09" duration="7" complete="0" thirdDate="2023-10-09" thirdDate-constraint="0" expand="true">
+            <depend id="3" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="19" name="Tools Einrichten" color="#ffffcc" meeting="false" start="2023-10-12" duration="4" complete="0" thirdDate="2023-10-12" thirdDate-constraint="0" expand="true">
+            <notes>
+                <![CDATA[e.g. Git Server, Kanban Board]]>
+            </notes>
+            <depend id="3" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="3" name="Projekt Abgenommen" color="#6666ff" meeting="true" start="2023-10-16" duration="0" complete="0" thirdDate="2023-10-07" thirdDate-constraint="0" expand="true">
+            <depend id="4" type="2" difference="0" hardness="Strong"/>
+            <depend id="9" type="2" difference="0" hardness="Strong"/>
+            <depend id="14" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="4" name="Hardware Bestimmen+Bestellen" color="#33ff33" meeting="false" start="2023-10-16" duration="6" complete="0" thirdDate="2023-10-07" thirdDate-constraint="0" expand="true">
+            <depend id="6" type="2" difference="0" hardness="Strong"/>
+            <depend id="7" type="2" difference="0" hardness="Strong"/>
+            <depend id="8" type="2" difference="0" hardness="Strong"/>
+            <depend id="10" type="2" difference="0" hardness="Strong"/>
+            <depend id="11" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="6" name="Code für DHT22" color="#8cb6ce" meeting="false" start="2023-10-22" duration="22" complete="0" thirdDate="2023-10-06" thirdDate-constraint="0" expand="true">
+            <notes>
+                <![CDATA[Temperatur + Luftfeuchtigkeit]]>
+            </notes>
+            <depend id="12" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="7" name="Code für MHQ135" color="#8cb6ce" meeting="false" start="2023-10-22" duration="22" complete="0" thirdDate="2023-10-22" thirdDate-constraint="0" expand="true">
+            <notes>
+                <![CDATA[CO2 Sensor]]>
+            </notes>
+            <depend id="12" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="8" name="Code für Kameraaufnahmen" color="#8cb6ce" meeting="false" start="2023-10-22" duration="22" complete="0" thirdDate="2023-10-22" thirdDate-constraint="0" expand="true">
+            <depend id="12" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="11" name="LoRa Configurieren" color="#8cb6ce" meeting="false" start="2023-10-22" duration="22" complete="0" thirdDate="2023-10-02" thirdDate-constraint="0" expand="true">
+            <depend id="12" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="10" name="Client und Server aufrichten" color="#ff3333" meeting="false" start="2023-10-22" duration="22" complete="0" thirdDate="2023-10-07" thirdDate-constraint="0" expand="true">
+            <depend id="12" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="9" name="AI Analyse via API Implementieren" color="#8cb6ce" meeting="false" start="2023-10-16" duration="28" complete="0" thirdDate="2023-10-06" thirdDate-constraint="0" expand="true">
+            <depend id="12" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="12" name="Verbindung der einzelnen Elemente" color="#8cb6ce" meeting="false" start="2023-11-13" duration="14" complete="0" thirdDate="2023-10-02" thirdDate-constraint="0" expand="true">
+            <depend id="17" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="14" name="Box Mockup/Prototyp Konzept erstellen" color="#330033" meeting="false" start="2023-10-16" duration="34" complete="0" thirdDate="2023-10-09" thirdDate-constraint="0" expand="true">
+            <depend id="17" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="17" name="Timelapse Box Aufbauen" color="#8cb6ce" meeting="false" start="2023-11-27" duration="14" complete="0" thirdDate="2023-10-23" thirdDate-constraint="0" expand="true">
+            <depend id="18" type="2" difference="0" hardness="Strong"/>
+            <depend id="20" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="18" name="Software- und Anwendungstests Ausführen" color="#ffffff" shape="1,0,1,0,0,1,0,1,1,0,1,0,0,1,0,1" meeting="false" start="2023-12-11" duration="20" complete="0" thirdDate="2023-11-22" thirdDate-constraint="0" expand="true"/>
+        <task id="20" name="Frontend" color="#ffffff" shape="0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0" meeting="false" start="2023-12-11" duration="27" complete="0" thirdDate="2023-12-11" thirdDate-constraint="0" expand="true"/>
+        <task id="15" name="Wandertour zum Turm" color="#ff3333" meeting="true" start="2023-10-17" duration="0" complete="0" thirdDate="2023-10-09" thirdDate-constraint="0" priority="4" expand="true"/>
+        <task id="16" name="Dokumentation" color="#ffffff" shape="1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,1" meeting="false" start="2023-10-09" duration="90" complete="0" thirdDate="2023-09-25" thirdDate-constraint="0" expand="true"/>
+    </tasks>
+    <resources>
+        <resource id="0" name="Dennis" function="Default:0" contacts="-" phone="-"/>
+        <resource id="1" name="Nirmi" function="Default:1" contacts="" phone=""/>
+        <resource id="2" name="Yaneck" function="Default:1" contacts="" phone=""/>
+        <resource id="3" name="Dominik" function="Default:1" contacts="" phone=""/>
+    </resources>
+    <allocations>
+        <allocation task-id="0" resource-id="0" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="4" resource-id="0" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="11" resource-id="0" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="9" resource-id="0" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="12" resource-id="0" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="17" resource-id="0" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="18" resource-id="0" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="20" resource-id="0" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="15" resource-id="0" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="0" resource-id="1" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="4" resource-id="1" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="6" resource-id="1" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="9" resource-id="1" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="12" resource-id="1" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="17" resource-id="1" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="20" resource-id="1" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="16" resource-id="1" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="15" resource-id="1" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="0" resource-id="2" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="4" resource-id="2" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="8" resource-id="2" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="9" resource-id="2" function="Default:1" responsible="true" load="100.0"/>
+        <allocation task-id="12" resource-id="2" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="14" resource-id="2" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="17" resource-id="2" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="15" resource-id="2" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="0" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="19" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="4" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="7" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="11" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="10" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="12" resource-id="3" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="14" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="17" resource-id="3" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="20" resource-id="3" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="15" resource-id="3" function="Default:0" responsible="false" load="100.0"/>
+        <allocation task-id="9" resource-id="3" function="Default:1" responsible="false" load="50.0"/>
+    </allocations>
+    <vacations/>
+    <previous/>
+    <roles roleset-name="Default"/>
+</project>
