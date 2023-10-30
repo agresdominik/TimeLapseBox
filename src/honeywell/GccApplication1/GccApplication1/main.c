@@ -45,7 +45,7 @@ void initUSART() {
 	UCSR0C = ASYNCHRONOUS | PARITY_MODE | STOP_BIT | DATA_BIT;
 	// Enable Receiver and Transmitter
 	UCSR0B = (1<<RXEN0) | (1<<TXEN0);
-	// Set the baud rate (for example, 9600 bps at 16MHz CPU clock) IMPORTANT: Last after transmitter is enabled <-- Datasheet info
+	// Set the baud rate  9600 bps at 16MHz CPU clock, IMPORTANT: Last after transmitter is enabled <-- Datasheet info
 	UBRR0H = BAUD_PRESCALER >> 8;
 	UBRR0L = BAUD_PRESCALER;
 }
