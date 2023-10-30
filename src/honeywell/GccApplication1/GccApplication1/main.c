@@ -5,14 +5,13 @@
  * Author : agres
  */ 
 
-#define __DELAY_BACKWARD_COMPATIBLE__
-#define F_CPU 16000000UL
-
 #include <avr/io.h>
 #include <stdio.h>
 #include <util/delay.h>
 
-#define USART_BAUDRATE 9600					// Desired Baud Rate
+#define __DELAY_BACKWARD_COMPATIBLE__
+#define F_CPU 16000000UL
+#define USART_BAUDRATE 9600
 #define BAUD_PRESCALER (((F_CPU / (USART_BAUDRATE * 16UL))) - 1)
 
 #define ASYNCHRONOUS (0<<UMSEL00) // USART Mode Selection
@@ -32,30 +31,49 @@
 #define EIGHT_BIT (3<<UCSZ00)
 #define DATA_BIT   EIGHT_BIT  // USART Data Bit Selection
 
+enum transmitFlag {
+	READVALUE,
+	STARTMEASUREMENT,
+	ENDMEASUREMENT
+};
+
 //This Code Initializes the UCSR0B
 void initUSART() {
-	
 	//Set Baud 0 before enabeling TX and RX
 	UBRR0 = 0;
-	
 	// Set Frame Format
 	UCSR0C = ASYNCHRONOUS | PARITY_MODE | STOP_BIT | DATA_BIT;
-	
 	// Enable Receiver and Transmitter
 	UCSR0B = (1<<RXEN0) | (1<<TXEN0);
-	
-	// Set the baud rate (for example, 9600 bps at 16MHz CPU clock) IMPORTANT: Last after transmitter is enabled
+	// Set the baud rate (for example, 9600 bps at 16MHz CPU clock) IMPORTANT: Last after transmitter is enabled <-- Datasheet info
 	UBRR0H = BAUD_PRESCALER >> 8;
 	UBRR0L = BAUD_PRESCALER;
 }
 
-void USART_TransmitPolling(uint8_t DataByte)
+void USART_TransmitPolling(transmitFlag)
 {
 	while (( UCSR0A & (1<<UDRE0)) == 0) {}; // Do nothing until UDR is ready
-	UDR0 = DataByte;
+
+	//Check Witch mode shoudl be transmitted and upload the corresponding bits
+	if(transmitFlag == READVALUE){
+		UDR0 = 0x68;
+		UDR0 = 0x01;
+		UDR0 = 0x04;
+		UDR0 = ((65536-(0x68+0x01+0x04))%256);
+	} else if (transmitFlag == STARTMEASUREMENT) {
+		UDR0 = 0x68;
+		UDR0 = 0x01;
+		UDR0 = 0x01;
+		UDR0 = ((65536-(0x68+0x01+0x01))%256);
+	} else if (transmitFlag == ENDMEASUREMENT) {
+		UDR0 = 0x68;
+		UDR0 = 0x01;
+		UDR0 = 0x02;
+		UDR0 = ((65536-(0x68+0x01+0x02))%256); 
+	}
 }
 
-//This Code Receives on the UCSR0A Pin -> Pin0 (Rx)
+//This Code Receives 
 unsigned char USARTReceive() {
 	// Wait for data to be received
 	while (!(UCSR0A & (1 << RXC0)));
@@ -67,17 +85,15 @@ unsigned char USARTReceive() {
 int main(void)
 {
 	initUSART();
+
+	_delay_ms(1000); //Temporary
+
+	USART_TransmitPolling(READVALUE);
+
+	uint8_t data = USARTReceive(); //TODO mehr als uint8
 	
     while (1) {
-		USART_TransmitPolling('A');
-		USART_TransmitPolling('R');
-		USART_TransmitPolling('N');
-		USART_TransmitPolling('A');
-		USART_TransmitPolling('B');
-		USART_TransmitPolling('\n');
-		_delay_ms(1000);
     }
     
     return 0;
 }
-
