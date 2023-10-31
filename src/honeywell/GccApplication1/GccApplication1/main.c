@@ -88,11 +88,13 @@ int main(void)
 
 	_delay_ms(1000); //Temporary
 
-	USART_TransmitPolling(READVALUE);
+	//USART_TransmitPolling(READVALUE);
 
-	uint8_t data = USARTReceive(); //TODO mehr als uint8
+	//uint8_t data = USARTReceive(); //TODO mehr als uint8
 	
     while (1) {
+		_delay_ms(2000);
+		USART_TransmitPolling(READVALUE);
     }
     
     return 0;
