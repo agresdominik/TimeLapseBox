@@ -9,6 +9,7 @@
 #define F_CPU 16000000UL
 
 #include <avr/io.h>
+#include <avr/interrupt.h>	// Manage interrupts (timer, ... interrupts)
 #include <stdio.h>
 #include <util/delay.h>
 
@@ -68,6 +69,46 @@ void initUSART( void ) {
 	
 	/* Set frame format: Asynchronous, No Parity Bit, 2stop Bit, 8 Data Bit */
 	UCSR0C = ASYNCHRONOUS | PARITY_MODE | STOP_BIT | DATA_BIT;
+}
+
+/*
+	Called at start of main in order to initialize the Onboard 8Bit Timer
+*/
+void initTimer( void ) {
+	cli();		//Disable Global Interrupts
+
+	DDRA = 0xFF;
+
+	// TIMER INITIALIZATION - setup timer and initialize them
+	// timer1 - 16bit - initialize by setting the "Clear Timer on Compare (CTC)" mode
+	// In CTC mode the counter is cleared to zero automatically when the counter value (TCNT1) matches the OCR1A register.
+	PRR0	|= (0 << PRTIM1); 	//make sure, that timer1 gets power - write a logical one means shut down timer module
+	// TCCR1A-B = Timer/Counter Control Register A and B - clear register and set to normal mode
+	TCCR1A	= 0;     		// set entire TCCR1A register to 0
+	TCCR1B	= 0;     		// same for TCCR1B
+
+	// target timer period is 1ms (0.0001s) - so the prescaler should be set to 64 - means each 64 clocks the timer counter increase by 1.
+	// To match a 1ms period a maximum count of 250 should be set. Calc.: 16.000.000 / 64 => 250.000 / 250 => 1000 (clocks each second).
+	// With the calculation it gets clear, why a 8bit timer is also working. His max count is 256 and the max count of timer1 is 65.536 
+	OCR1A	= 250;		// OCR2A defines the top value for the counter - set compare match register to desired timer count
+	// turn on CTC mode - see table 17-2 Page 145 in datasheet
+	// If a period control is need the CTC mode is better as normal mode, because an automatically timer reload happens after each match
+	// and the match value has to be set once. For special functions the timer logic level output could be toggle. See 17.9.2 (Table 17-3), Page 146, ds. 
+	TCCR1B	|= (1 << WGM12); //set CTC mode - for OCR register (mode 4 in datasheet)
+	TCCR1B	|= (1 << CS11) | (1 << CS10); // Set CS10 and CS11 bits for 64 prescaler (Table 17-6, p.157)
+	// enable timer compare interrupt - because all timer interrupts can be individually masked with the "Timer Interrupt Mask Register" (TIMSKn)
+	TIMSK1 |= (1 << OCIE1A); // If enabled (OCIEnx = 1 | n=1 for timer 1 | x=A for compare vector A), the Output Compare Flag generates an Output Compare interrupt. (17.7, p.141, ds)
+ 
+	sei();          	// enable global interrupts
+}
+
+// Interrupt service routine 
+// handles the match for timer1 - 16bit - Clear Timer on Compare (CTC) mode
+// timer period = 1ms
+ISR(TIMER1_COMPA_vect){ // (keep the code inside as less as possible - each inside jump stops the main routine)
+	// if a match is detected the flag is set
+	flag_timer1 = 1; // set it on - in main() the var would be set off
+	// Example 3: PORTA ^= (1 << PA1);			// toggling port pin
 }
 
 /* 
@@ -155,8 +196,14 @@ void USARTReceiveStatus( void ) {
 	for(int i=0;i<2;i++){
 		dataRecived[i] = USARTReceive();
 	}
-	
-	//TODO: Check ACK if Positive or Negative
+
+	if (dataRecived[1] == 0xA5 && dataRecived[2] == 0xA5) {
+		//Positive ACK
+	} else if (dataRecived[1] == 0x96 && dataRecived[2] == 0x96){
+		//Negative ACK
+	} else {
+		//Unknown Error, e.g. Cable Loose, interference...
+	}
 	
 }
 
@@ -177,6 +224,7 @@ void USARTReceiveValues( void ) {
 int main(void) {
 	initUSART();
 	_delay_ms(1000); //Temporary
+	initTimer();
 	
     while (1) {
 		USART_TransmitPollingHoneywell(STOPAUTOSEND);
