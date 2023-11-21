@@ -12,6 +12,18 @@
 #include <avr/interrupt.h>	// Manage interrupts (timer, ... interrupts)
 #include <stdio.h>
 #include <util/delay.h>
+//RTC Clock
+#include <twimaster.c>		//TODO: c file import works only?
+
+//Defines for the ds1307 RTC TWI interface
+#define DS1307 0xD0					//0x68 bit shifted to left
+#define DS1307Second 0x00			//Address for the seconds on the DS1307
+#define DS1307Minute 0x01			//Address for the minutes on the DS1307
+#define DS1307Hour 0x02				//Address for the Hours on the DS1307
+#define DS1307Day 0x03				//Address for the Days on the DS1307
+#define DS1307Date 0x04				//Address for the Date on the DS1307
+#define DS1307Month 0x05			//Address for the Month on the DS1307
+#define DS1307Year 0x06				//Address for the Year on the DS1307
 
 // USART Baud rate and Prescaler/Divider
 #define USART_BAUDRATE 9600
@@ -72,17 +84,17 @@ void initUSART( void ) {
 }
 
 /*
-	Called at start of main in order to initialize the Onboard 8Bit Timer
+	Called at start of main in order to initialize the on board 8Bit Timer
 */
 void initTimer( void ) {
 	cli();		//Disable Global Interrupts
 
-	DDRA = 0xFF;
+	//DDRA = 0xFF;
 
 	// TIMER INITIALIZATION - setup timer and initialize them
 	// timer1 - 16bit - initialize by setting the "Clear Timer on Compare (CTC)" mode
 	// In CTC mode the counter is cleared to zero automatically when the counter value (TCNT1) matches the OCR1A register.
-	PRR0	|= (0 << PRTIM1); 	//make sure, that timer1 gets power - write a logical one means shut down timer module
+	//PRR0	|= (0 << PRTIM1); 	//make sure, that timer1 gets power - write a logical one means shut down timer module
 	// TCCR1A-B = Timer/Counter Control Register A and B - clear register and set to normal mode
 	TCCR1A	= 0;     		// set entire TCCR1A register to 0
 	TCCR1B	= 0;     		// same for TCCR1B
@@ -107,7 +119,7 @@ void initTimer( void ) {
 // timer period = 1ms
 ISR(TIMER1_COMPA_vect){ // (keep the code inside as less as possible - each inside jump stops the main routine)
 	// if a match is detected the flag is set
-	flag_timer1 = 1; // set it on - in main() the var would be set off
+	//flag_timer1 = 1; // set it on - in main() the var would be set off
 	// Example 3: PORTA ^= (1 << PA1);			// toggling port pin
 }
 
@@ -221,19 +233,94 @@ void USARTReceiveValues( void ) {
 	
 }
 
+void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour) {
+	
+	unsigned char check;
+	
+	check = i2c_start(DS1307+I2C_WRITE);
+	if ( check ) {
+		/* Failed to issue start condition, Error message here */
+		i2c_stop();
+	} else {
+		i2c_stop();
+		
+		//Initializes the seconds to given value, IMPORTANT: the bit 7 (see datasheet) needs to be a 0 for the clock to run
+		i2c_start_wait(DS1307+I2C_WRITE);
+		i2c_write(DS1307Second);
+		i2c_write(second);
+		i2c_stop();
+	
+		//Initializes the Minutes to given value
+		i2c_start_wait(DS1307+I2C_WRITE);
+		i2c_write(DS1307Minute);
+		i2c_write(minute);
+		i2c_stop();
+	
+		//Initializes the Hour to given value
+		i2c_start_wait(DS1307+I2C_WRITE);
+		i2c_write(DS1307Hour);
+		i2c_write(hour);
+		i2c_stop();
+		
+		//... are days ... important?
+	}
+}
+
+void DS1307ReadToUart ( void ) {
+	unsigned char second;
+	unsigned char minute;
+	unsigned char hour;
+	
+	i2c_start_wait(DS1307+I2C_WRITE);
+	i2c_write(DS1307Second);
+	i2c_rep_start(DS1307+I2C_READ);
+	second = i2c_readNak();
+	i2c_stop();
+	
+	i2c_start_wait(DS1307+I2C_WRITE);
+	i2c_write(DS1307Minute);
+	i2c_rep_start(DS1307+I2C_READ);
+	minute = i2c_readNak();
+	i2c_stop();
+	
+	i2c_start_wait(DS1307+I2C_WRITE);
+	i2c_write(DS1307Hour);
+	i2c_rep_start(DS1307+I2C_READ);
+	hour = i2c_readNak();
+	i2c_stop();
+	
+	USART_Transmit('S');
+	USART_Transmit(second);
+	USART_Transmit('M');
+	USART_Transmit(minute);
+	USART_Transmit('H');
+	USART_Transmit(hour);
+	_delay_ms(10000);
+}
+
 int main(void) {
+	
+	unsigned char ret;
+	
 	initUSART();
 	_delay_ms(1000); //Temporary
-	initTimer();
+	//initTimer();
+	i2c_init();
+	
+	DS1307Init(0x00, 0x15, 0x0C);
 	
     while (1) {
-		USART_TransmitPollingHoneywell(STOPAUTOSEND);
-		_delay_ms(5000); //Temporary
-		USART_TransmitPollingHoneywell(STARTMEASUREMENT);
-		_delay_ms(5000); //Temporary
-		USART_TransmitPollingHoneywell(READVALUE);
-		_delay_ms(10000); //Temporary
-		USART_TransmitPollingHoneywell(STOPMEASUREMENT);
+		DS1307ReadToUart();
+		
+		//USART_TransmitPollingHoneywell(STOPAUTOSEND);
+		//_delay_ms(5000); //Temporary
+		//USART_TransmitPollingHoneywell(STARTMEASUREMENT);
+		//_delay_ms(5000); //Temporary
+		//USART_TransmitPollingHoneywell(READVALUE);
+		//_delay_ms(10000); //Temporary
+		//USART_TransmitPollingHoneywell(STOPMEASUREMENT);
+		
+		
     }
     
     return 0;

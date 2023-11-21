@@ -3,29 +3,29 @@ GccApplication1.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .data         00000014  00800100  00000204  00000278  2**0
+  0 .data         00000000  00800100  00800100  00000358  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         00000204  00000000  00000000  00000074  2**1
+  1 .text         00000304  00000000  00000000  00000054  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .comment      00000030  00000000  00000000  0000028c  2**0
+  2 .comment      00000030  00000000  00000000  00000358  2**0
                   CONTENTS, READONLY
-  3 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  000002bc  2**2
+  3 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  00000388  2**2
                   CONTENTS, READONLY
-  4 .debug_aranges 00000058  00000000  00000000  000002fc  2**0
+  4 .debug_aranges 000000b8  00000000  00000000  000003c8  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_info   00000b4a  00000000  00000000  00000354  2**0
+  5 .debug_info   00000ef7  00000000  00000000  00000480  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_abbrev 00000770  00000000  00000000  00000e9e  2**0
+  6 .debug_abbrev 00000810  00000000  00000000  00001377  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_line   00000529  00000000  00000000  0000160e  2**0
+  7 .debug_line   00000890  00000000  00000000  00001b87  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_frame  000000c0  00000000  00000000  00001b38  2**2
+  8 .debug_frame  000001bc  00000000  00000000  00002418  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    000004e3  00000000  00000000  00001bf8  2**0
+  9 .debug_str    00000596  00000000  00000000  000025d4  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    000004ac  00000000  00000000  000020db  2**0
+ 10 .debug_loc    000006b9  00000000  00000000  00002b6a  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_ranges 000000c0  00000000  00000000  00002587  2**0
+ 11 .debug_ranges 00000120  00000000  00000000  00003223  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -42,7 +42,7 @@ Disassembly of section .text:
   20:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
   24:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
   28:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
-  2c:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  2c:	0c 94 d1 00 	jmp	0x1a2	; 0x1a2 <__vector_11>
   30:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
   34:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
   38:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
@@ -71,283 +71,408 @@ Disassembly of section .text:
   76:	a0 e0       	ldi	r26, 0x00	; 0
   78:	b1 e0       	ldi	r27, 0x01	; 1
   7a:	e4 e0       	ldi	r30, 0x04	; 4
-  7c:	f2 e0       	ldi	r31, 0x02	; 2
+  7c:	f3 e0       	ldi	r31, 0x03	; 3
   7e:	02 c0       	rjmp	.+4      	; 0x84 <__do_copy_data+0x10>
   80:	05 90       	lpm	r0, Z+
   82:	0d 92       	st	X+, r0
-  84:	a4 31       	cpi	r26, 0x14	; 20
+  84:	a0 30       	cpi	r26, 0x00	; 0
   86:	b1 07       	cpc	r27, r17
   88:	d9 f7       	brne	.-10     	; 0x80 <__do_copy_data+0xc>
-  8a:	0e 94 c5 00 	call	0x18a	; 0x18a <main>
-  8e:	0c 94 00 01 	jmp	0x200	; 0x200 <_exit>
+  8a:	0e 94 6a 01 	call	0x2d4	; 0x2d4 <main>
+  8e:	0c 94 80 01 	jmp	0x300	; 0x300 <_exit>
 
 00000092 <__bad_interrupt>:
   92:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
 
-00000096 <initUSART>:
+00000096 <i2c_init>:
 		dataRecived[i] = USARTReceive();
 	}
 	
 	//TODO Evaluate Data and do something
 	
 }
-  96:	10 92 c5 00 	sts	0x00C5, r1	; 0x8000c5 <__TEXT_REGION_LENGTH__+0x7f80c5>
-  9a:	87 e6       	ldi	r24, 0x67	; 103
-  9c:	80 93 c4 00 	sts	0x00C4, r24	; 0x8000c4 <__TEXT_REGION_LENGTH__+0x7f80c4>
-  a0:	88 e1       	ldi	r24, 0x18	; 24
-  a2:	80 93 c1 00 	sts	0x00C1, r24	; 0x8000c1 <__TEXT_REGION_LENGTH__+0x7f80c1>
-  a6:	86 e0       	ldi	r24, 0x06	; 6
-  a8:	80 93 c2 00 	sts	0x00C2, r24	; 0x8000c2 <__TEXT_REGION_LENGTH__+0x7f80c2>
-  ac:	08 95       	ret
+  96:	10 92 b9 00 	sts	0x00B9, r1	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7f80b9>
+  9a:	88 e4       	ldi	r24, 0x48	; 72
+  9c:	80 93 b8 00 	sts	0x00B8, r24	; 0x8000b8 <__TEXT_REGION_LENGTH__+0x7f80b8>
+  a0:	08 95       	ret
 
-000000ae <USART_WaitUntilReady>:
-  ae:	80 91 c0 00 	lds	r24, 0x00C0	; 0x8000c0 <__TEXT_REGION_LENGTH__+0x7f80c0>
-  b2:	85 ff       	sbrs	r24, 5
-  b4:	fc cf       	rjmp	.-8      	; 0xae <USART_WaitUntilReady>
-  b6:	08 95       	ret
+000000a2 <i2c_start>:
+  a2:	94 ea       	ldi	r25, 0xA4	; 164
+  a4:	90 93 bc 00 	sts	0x00BC, r25	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+  a8:	90 91 bc 00 	lds	r25, 0x00BC	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+  ac:	99 23       	and	r25, r25
+  ae:	e4 f7       	brge	.-8      	; 0xa8 <i2c_start+0x6>
+  b0:	90 91 b9 00 	lds	r25, 0x00B9	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7f80b9>
+  b4:	98 7f       	andi	r25, 0xF8	; 248
+  b6:	98 30       	cpi	r25, 0x08	; 8
+  b8:	11 f0       	breq	.+4      	; 0xbe <i2c_start+0x1c>
+  ba:	90 31       	cpi	r25, 0x10	; 16
+  bc:	91 f4       	brne	.+36     	; 0xe2 <i2c_start+0x40>
+  be:	80 93 bb 00 	sts	0x00BB, r24	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
+  c2:	84 e8       	ldi	r24, 0x84	; 132
+  c4:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+  c8:	80 91 bc 00 	lds	r24, 0x00BC	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+  cc:	88 23       	and	r24, r24
+  ce:	e4 f7       	brge	.-8      	; 0xc8 <i2c_start+0x26>
+  d0:	80 91 b9 00 	lds	r24, 0x00B9	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7f80b9>
+  d4:	88 7f       	andi	r24, 0xF8	; 248
+  d6:	88 31       	cpi	r24, 0x18	; 24
+  d8:	31 f0       	breq	.+12     	; 0xe6 <i2c_start+0x44>
+  da:	80 34       	cpi	r24, 0x40	; 64
+  dc:	31 f4       	brne	.+12     	; 0xea <i2c_start+0x48>
+  de:	80 e0       	ldi	r24, 0x00	; 0
+  e0:	08 95       	ret
+  e2:	81 e0       	ldi	r24, 0x01	; 1
+  e4:	08 95       	ret
+  e6:	80 e0       	ldi	r24, 0x00	; 0
+  e8:	08 95       	ret
+  ea:	81 e0       	ldi	r24, 0x01	; 1
+  ec:	08 95       	ret
 
-000000b8 <USART_TransmitPollingHoneywell>:
-  b8:	cf 93       	push	r28
-  ba:	df 93       	push	r29
-  bc:	ec 01       	movw	r28, r24
-  be:	0e 94 57 00 	call	0xae	; 0xae <USART_WaitUntilReady>
-  c2:	20 97       	sbiw	r28, 0x00	; 0
-  c4:	59 f0       	breq	.+22     	; 0xdc <USART_TransmitPollingHoneywell+0x24>
-  c6:	10 c0       	rjmp	.+32     	; 0xe8 <USART_TransmitPollingHoneywell+0x30>
-  c8:	fe 01       	movw	r30, r28
-  ca:	e0 5f       	subi	r30, 0xF0	; 240
-  cc:	fe 4f       	sbci	r31, 0xFE	; 254
-  ce:	80 81       	ld	r24, Z
-  d0:	80 93 c6 00 	sts	0x00C6, r24	; 0x8000c6 <__TEXT_REGION_LENGTH__+0x7f80c6>
-  d4:	0e 94 57 00 	call	0xae	; 0xae <USART_WaitUntilReady>
-  d8:	21 96       	adiw	r28, 0x01	; 1
-  da:	02 c0       	rjmp	.+4      	; 0xe0 <USART_TransmitPollingHoneywell+0x28>
-  dc:	c0 e0       	ldi	r28, 0x00	; 0
-  de:	d0 e0       	ldi	r29, 0x00	; 0
-  e0:	c4 30       	cpi	r28, 0x04	; 4
-  e2:	d1 05       	cpc	r29, r1
-  e4:	8c f3       	brlt	.-30     	; 0xc8 <USART_TransmitPollingHoneywell+0x10>
-  e6:	4e c0       	rjmp	.+156    	; 0x184 <USART_TransmitPollingHoneywell+0xcc>
-  e8:	c1 30       	cpi	r28, 0x01	; 1
-  ea:	d1 05       	cpc	r29, r1
-  ec:	89 f4       	brne	.+34     	; 0x110 <USART_TransmitPollingHoneywell+0x58>
-  ee:	0a c0       	rjmp	.+20     	; 0x104 <USART_TransmitPollingHoneywell+0x4c>
-  f0:	fe 01       	movw	r30, r28
-  f2:	e4 5f       	subi	r30, 0xF4	; 244
-  f4:	fe 4f       	sbci	r31, 0xFE	; 254
-  f6:	80 81       	ld	r24, Z
-  f8:	80 93 c6 00 	sts	0x00C6, r24	; 0x8000c6 <__TEXT_REGION_LENGTH__+0x7f80c6>
-  fc:	0e 94 57 00 	call	0xae	; 0xae <USART_WaitUntilReady>
- 100:	21 96       	adiw	r28, 0x01	; 1
- 102:	02 c0       	rjmp	.+4      	; 0x108 <USART_TransmitPollingHoneywell+0x50>
- 104:	c0 e0       	ldi	r28, 0x00	; 0
- 106:	d0 e0       	ldi	r29, 0x00	; 0
- 108:	c4 30       	cpi	r28, 0x04	; 4
- 10a:	d1 05       	cpc	r29, r1
- 10c:	8c f3       	brlt	.-30     	; 0xf0 <USART_TransmitPollingHoneywell+0x38>
- 10e:	3a c0       	rjmp	.+116    	; 0x184 <USART_TransmitPollingHoneywell+0xcc>
- 110:	c2 30       	cpi	r28, 0x02	; 2
- 112:	d1 05       	cpc	r29, r1
- 114:	89 f4       	brne	.+34     	; 0x138 <USART_TransmitPollingHoneywell+0x80>
- 116:	0a c0       	rjmp	.+20     	; 0x12c <USART_TransmitPollingHoneywell+0x74>
- 118:	fe 01       	movw	r30, r28
- 11a:	e8 5f       	subi	r30, 0xF8	; 248
- 11c:	fe 4f       	sbci	r31, 0xFE	; 254
- 11e:	80 81       	ld	r24, Z
- 120:	80 93 c6 00 	sts	0x00C6, r24	; 0x8000c6 <__TEXT_REGION_LENGTH__+0x7f80c6>
- 124:	0e 94 57 00 	call	0xae	; 0xae <USART_WaitUntilReady>
- 128:	21 96       	adiw	r28, 0x01	; 1
- 12a:	02 c0       	rjmp	.+4      	; 0x130 <USART_TransmitPollingHoneywell+0x78>
- 12c:	c0 e0       	ldi	r28, 0x00	; 0
- 12e:	d0 e0       	ldi	r29, 0x00	; 0
- 130:	c4 30       	cpi	r28, 0x04	; 4
- 132:	d1 05       	cpc	r29, r1
- 134:	8c f3       	brlt	.-30     	; 0x118 <USART_TransmitPollingHoneywell+0x60>
- 136:	26 c0       	rjmp	.+76     	; 0x184 <USART_TransmitPollingHoneywell+0xcc>
- 138:	c3 30       	cpi	r28, 0x03	; 3
- 13a:	d1 05       	cpc	r29, r1
- 13c:	89 f4       	brne	.+34     	; 0x160 <USART_TransmitPollingHoneywell+0xa8>
- 13e:	0a c0       	rjmp	.+20     	; 0x154 <USART_TransmitPollingHoneywell+0x9c>
- 140:	fe 01       	movw	r30, r28
- 142:	ec 5f       	subi	r30, 0xFC	; 252
- 144:	fe 4f       	sbci	r31, 0xFE	; 254
- 146:	80 81       	ld	r24, Z
- 148:	80 93 c6 00 	sts	0x00C6, r24	; 0x8000c6 <__TEXT_REGION_LENGTH__+0x7f80c6>
- 14c:	0e 94 57 00 	call	0xae	; 0xae <USART_WaitUntilReady>
- 150:	21 96       	adiw	r28, 0x01	; 1
- 152:	02 c0       	rjmp	.+4      	; 0x158 <USART_TransmitPollingHoneywell+0xa0>
- 154:	c0 e0       	ldi	r28, 0x00	; 0
- 156:	d0 e0       	ldi	r29, 0x00	; 0
- 158:	c4 30       	cpi	r28, 0x04	; 4
- 15a:	d1 05       	cpc	r29, r1
- 15c:	8c f3       	brlt	.-30     	; 0x140 <USART_TransmitPollingHoneywell+0x88>
- 15e:	12 c0       	rjmp	.+36     	; 0x184 <USART_TransmitPollingHoneywell+0xcc>
- 160:	24 97       	sbiw	r28, 0x04	; 4
- 162:	81 f4       	brne	.+32     	; 0x184 <USART_TransmitPollingHoneywell+0xcc>
- 164:	0a c0       	rjmp	.+20     	; 0x17a <USART_TransmitPollingHoneywell+0xc2>
- 166:	fe 01       	movw	r30, r28
- 168:	e0 50       	subi	r30, 0x00	; 0
- 16a:	ff 4f       	sbci	r31, 0xFF	; 255
- 16c:	80 81       	ld	r24, Z
- 16e:	80 93 c6 00 	sts	0x00C6, r24	; 0x8000c6 <__TEXT_REGION_LENGTH__+0x7f80c6>
- 172:	0e 94 57 00 	call	0xae	; 0xae <USART_WaitUntilReady>
- 176:	21 96       	adiw	r28, 0x01	; 1
- 178:	02 c0       	rjmp	.+4      	; 0x17e <USART_TransmitPollingHoneywell+0xc6>
- 17a:	c0 e0       	ldi	r28, 0x00	; 0
- 17c:	d0 e0       	ldi	r29, 0x00	; 0
- 17e:	c4 30       	cpi	r28, 0x04	; 4
- 180:	d1 05       	cpc	r29, r1
- 182:	8c f3       	brlt	.-30     	; 0x166 <USART_TransmitPollingHoneywell+0xae>
- 184:	df 91       	pop	r29
- 186:	cf 91       	pop	r28
+000000ee <i2c_start_wait>:
+  ee:	94 ea       	ldi	r25, 0xA4	; 164
+  f0:	90 93 bc 00 	sts	0x00BC, r25	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+  f4:	90 91 bc 00 	lds	r25, 0x00BC	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+  f8:	99 23       	and	r25, r25
+  fa:	e4 f7       	brge	.-8      	; 0xf4 <i2c_start_wait+0x6>
+  fc:	90 91 b9 00 	lds	r25, 0x00B9	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7f80b9>
+ 100:	98 7f       	andi	r25, 0xF8	; 248
+ 102:	98 30       	cpi	r25, 0x08	; 8
+ 104:	11 f0       	breq	.+4      	; 0x10a <i2c_start_wait+0x1c>
+ 106:	90 31       	cpi	r25, 0x10	; 16
+ 108:	91 f7       	brne	.-28     	; 0xee <i2c_start_wait>
+ 10a:	80 93 bb 00 	sts	0x00BB, r24	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
+ 10e:	94 e8       	ldi	r25, 0x84	; 132
+ 110:	90 93 bc 00 	sts	0x00BC, r25	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 114:	90 91 bc 00 	lds	r25, 0x00BC	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 118:	99 23       	and	r25, r25
+ 11a:	e4 f7       	brge	.-8      	; 0x114 <i2c_start_wait+0x26>
+ 11c:	90 91 b9 00 	lds	r25, 0x00B9	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7f80b9>
+ 120:	98 7f       	andi	r25, 0xF8	; 248
+ 122:	90 32       	cpi	r25, 0x20	; 32
+ 124:	11 f0       	breq	.+4      	; 0x12a <i2c_start_wait+0x3c>
+ 126:	98 35       	cpi	r25, 0x58	; 88
+ 128:	41 f4       	brne	.+16     	; 0x13a <i2c_start_wait+0x4c>
+ 12a:	94 e9       	ldi	r25, 0x94	; 148
+ 12c:	90 93 bc 00 	sts	0x00BC, r25	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 130:	90 91 bc 00 	lds	r25, 0x00BC	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 134:	94 fd       	sbrc	r25, 4
+ 136:	fc cf       	rjmp	.-8      	; 0x130 <i2c_start_wait+0x42>
+ 138:	da cf       	rjmp	.-76     	; 0xee <i2c_start_wait>
+ 13a:	08 95       	ret
+
+0000013c <i2c_rep_start>:
+ 13c:	0e 94 51 00 	call	0xa2	; 0xa2 <i2c_start>
+ 140:	08 95       	ret
+
+00000142 <i2c_stop>:
+ 142:	84 e9       	ldi	r24, 0x94	; 148
+ 144:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 148:	80 91 bc 00 	lds	r24, 0x00BC	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 14c:	84 fd       	sbrc	r24, 4
+ 14e:	fc cf       	rjmp	.-8      	; 0x148 <i2c_stop+0x6>
+ 150:	08 95       	ret
+
+00000152 <i2c_write>:
+ 152:	80 93 bb 00 	sts	0x00BB, r24	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
+ 156:	84 e8       	ldi	r24, 0x84	; 132
+ 158:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 15c:	80 91 bc 00 	lds	r24, 0x00BC	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 160:	88 23       	and	r24, r24
+ 162:	e4 f7       	brge	.-8      	; 0x15c <i2c_write+0xa>
+ 164:	80 91 b9 00 	lds	r24, 0x00B9	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7f80b9>
+ 168:	88 7f       	andi	r24, 0xF8	; 248
+ 16a:	88 32       	cpi	r24, 0x28	; 40
+ 16c:	11 f0       	breq	.+4      	; 0x172 <i2c_write+0x20>
+ 16e:	81 e0       	ldi	r24, 0x01	; 1
+ 170:	08 95       	ret
+ 172:	80 e0       	ldi	r24, 0x00	; 0
+ 174:	08 95       	ret
+
+00000176 <i2c_readNak>:
+ 176:	84 e8       	ldi	r24, 0x84	; 132
+ 178:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 17c:	80 91 bc 00 	lds	r24, 0x00BC	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 180:	88 23       	and	r24, r24
+ 182:	e4 f7       	brge	.-8      	; 0x17c <i2c_readNak+0x6>
+ 184:	80 91 bb 00 	lds	r24, 0x00BB	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
  188:	08 95       	ret
 
-0000018a <main>:
+0000018a <initUSART>:
+ 18a:	10 92 c5 00 	sts	0x00C5, r1	; 0x8000c5 <__TEXT_REGION_LENGTH__+0x7f80c5>
+ 18e:	87 e6       	ldi	r24, 0x67	; 103
+ 190:	80 93 c4 00 	sts	0x00C4, r24	; 0x8000c4 <__TEXT_REGION_LENGTH__+0x7f80c4>
+ 194:	88 e1       	ldi	r24, 0x18	; 24
+ 196:	80 93 c1 00 	sts	0x00C1, r24	; 0x8000c1 <__TEXT_REGION_LENGTH__+0x7f80c1>
+ 19a:	86 e0       	ldi	r24, 0x06	; 6
+ 19c:	80 93 c2 00 	sts	0x00C2, r24	; 0x8000c2 <__TEXT_REGION_LENGTH__+0x7f80c2>
+ 1a0:	08 95       	ret
 
-int main(void) {
-	initUSART();
- 18a:	0e 94 4b 00 	call	0x96	; 0x96 <initUSART>
+000001a2 <__vector_11>:
+ 1a2:	1f 92       	push	r1
+ 1a4:	0f 92       	push	r0
+ 1a6:	0f b6       	in	r0, 0x3f	; 63
+ 1a8:	0f 92       	push	r0
+ 1aa:	11 24       	eor	r1, r1
+ 1ac:	0f 90       	pop	r0
+ 1ae:	0f be       	out	0x3f, r0	; 63
+ 1b0:	0f 90       	pop	r0
+ 1b2:	1f 90       	pop	r1
+ 1b4:	18 95       	reti
+
+000001b6 <USART_WaitUntilReady>:
+ 1b6:	80 91 c0 00 	lds	r24, 0x00C0	; 0x8000c0 <__TEXT_REGION_LENGTH__+0x7f80c0>
+ 1ba:	85 ff       	sbrs	r24, 5
+ 1bc:	fc cf       	rjmp	.-8      	; 0x1b6 <USART_WaitUntilReady>
+ 1be:	08 95       	ret
+
+000001c0 <USART_Transmit>:
+ 1c0:	cf 93       	push	r28
+ 1c2:	c8 2f       	mov	r28, r24
+ 1c4:	0e 94 db 00 	call	0x1b6	; 0x1b6 <USART_WaitUntilReady>
+ 1c8:	c0 93 c6 00 	sts	0x00C6, r28	; 0x8000c6 <__TEXT_REGION_LENGTH__+0x7f80c6>
+ 1cc:	cf 91       	pop	r28
+ 1ce:	08 95       	ret
+
+000001d0 <DS1307Init>:
+
+void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour) {
+ 1d0:	1f 93       	push	r17
+ 1d2:	cf 93       	push	r28
+ 1d4:	df 93       	push	r29
+ 1d6:	18 2f       	mov	r17, r24
+ 1d8:	d6 2f       	mov	r29, r22
+ 1da:	c4 2f       	mov	r28, r20
+	
+	unsigned char check;
+	
+	check = i2c_start(DS1307+I2C_WRITE);
+ 1dc:	80 ed       	ldi	r24, 0xD0	; 208
+ 1de:	0e 94 51 00 	call	0xa2	; 0xa2 <i2c_start>
+	if ( check ) {
+ 1e2:	88 23       	and	r24, r24
+ 1e4:	19 f0       	breq	.+6      	; 0x1ec <DS1307Init+0x1c>
+		/* Failed to issue start condition, Error message here */
+		i2c_stop();
+ 1e6:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
+ 1ea:	23 c0       	rjmp	.+70     	; 0x232 <DS1307Init+0x62>
+	} else {
+		i2c_stop();
+ 1ec:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
+		
+		//Initializes the seconds to given value, IMPORTANT: the bit 7 (see datasheet) needs to be a 0 for the clock to run
+		i2c_start_wait(DS1307+I2C_WRITE);
+ 1f0:	80 ed       	ldi	r24, 0xD0	; 208
+ 1f2:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
+		i2c_write(DS1307Second);
+ 1f6:	80 e0       	ldi	r24, 0x00	; 0
+ 1f8:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
+		i2c_write(second);
+ 1fc:	81 2f       	mov	r24, r17
+ 1fe:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
+		i2c_stop();
+ 202:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
+	
+		//Initializes the Minutes to given value
+		i2c_start_wait(DS1307+I2C_WRITE);
+ 206:	80 ed       	ldi	r24, 0xD0	; 208
+ 208:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
+		i2c_write(DS1307Minute);
+ 20c:	81 e0       	ldi	r24, 0x01	; 1
+ 20e:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
+		i2c_write(minute);
+ 212:	8d 2f       	mov	r24, r29
+ 214:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
+		i2c_stop();
+ 218:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
+	
+		//Initializes the Hour to given value
+		i2c_start_wait(DS1307+I2C_WRITE);
+ 21c:	80 ed       	ldi	r24, 0xD0	; 208
+ 21e:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
+		i2c_write(DS1307Hour);
+ 222:	82 e0       	ldi	r24, 0x02	; 2
+ 224:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
+		i2c_write(hour);
+ 228:	8c 2f       	mov	r24, r28
+ 22a:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
+		i2c_stop();
+ 22e:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
+		
+		//... are days ... important?
+	}
+}
+ 232:	df 91       	pop	r29
+ 234:	cf 91       	pop	r28
+ 236:	1f 91       	pop	r17
+ 238:	08 95       	ret
+
+0000023a <DS1307ReadToUart>:
+
+void DS1307ReadToUart ( void ) {
+ 23a:	1f 93       	push	r17
+ 23c:	cf 93       	push	r28
+ 23e:	df 93       	push	r29
+	unsigned char second;
+	unsigned char minute;
+	unsigned char hour;
+	
+	i2c_start_wait(DS1307+I2C_WRITE);
+ 240:	80 ed       	ldi	r24, 0xD0	; 208
+ 242:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
+	i2c_write(DS1307Second);
+ 246:	80 e0       	ldi	r24, 0x00	; 0
+ 248:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
+	i2c_rep_start(DS1307+I2C_READ);
+ 24c:	81 ed       	ldi	r24, 0xD1	; 209
+ 24e:	0e 94 9e 00 	call	0x13c	; 0x13c <i2c_rep_start>
+	second = i2c_readNak();
+ 252:	0e 94 bb 00 	call	0x176	; 0x176 <i2c_readNak>
+ 256:	18 2f       	mov	r17, r24
+	i2c_stop();
+ 258:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
+	
+	i2c_start_wait(DS1307+I2C_WRITE);
+ 25c:	80 ed       	ldi	r24, 0xD0	; 208
+ 25e:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
+	i2c_write(DS1307Minute);
+ 262:	81 e0       	ldi	r24, 0x01	; 1
+ 264:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
+	i2c_rep_start(DS1307+I2C_READ);
+ 268:	81 ed       	ldi	r24, 0xD1	; 209
+ 26a:	0e 94 9e 00 	call	0x13c	; 0x13c <i2c_rep_start>
+	minute = i2c_readNak();
+ 26e:	0e 94 bb 00 	call	0x176	; 0x176 <i2c_readNak>
+ 272:	d8 2f       	mov	r29, r24
+	i2c_stop();
+ 274:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
+	
+	i2c_start_wait(DS1307+I2C_WRITE);
+ 278:	80 ed       	ldi	r24, 0xD0	; 208
+ 27a:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
+	i2c_write(DS1307Hour);
+ 27e:	82 e0       	ldi	r24, 0x02	; 2
+ 280:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
+	i2c_rep_start(DS1307+I2C_READ);
+ 284:	81 ed       	ldi	r24, 0xD1	; 209
+ 286:	0e 94 9e 00 	call	0x13c	; 0x13c <i2c_rep_start>
+	hour = i2c_readNak();
+ 28a:	0e 94 bb 00 	call	0x176	; 0x176 <i2c_readNak>
+ 28e:	c8 2f       	mov	r28, r24
+	i2c_stop();
+ 290:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
+	
+	USART_Transmit('S');
+ 294:	83 e5       	ldi	r24, 0x53	; 83
+ 296:	0e 94 e0 00 	call	0x1c0	; 0x1c0 <USART_Transmit>
+	USART_Transmit(second);
+ 29a:	81 2f       	mov	r24, r17
+ 29c:	0e 94 e0 00 	call	0x1c0	; 0x1c0 <USART_Transmit>
+	USART_Transmit('M');
+ 2a0:	8d e4       	ldi	r24, 0x4D	; 77
+ 2a2:	0e 94 e0 00 	call	0x1c0	; 0x1c0 <USART_Transmit>
+	USART_Transmit(minute);
+ 2a6:	8d 2f       	mov	r24, r29
+ 2a8:	0e 94 e0 00 	call	0x1c0	; 0x1c0 <USART_Transmit>
+	USART_Transmit('H');
+ 2ac:	88 e4       	ldi	r24, 0x48	; 72
+ 2ae:	0e 94 e0 00 	call	0x1c0	; 0x1c0 <USART_Transmit>
+	USART_Transmit(hour);
+ 2b2:	8c 2f       	mov	r24, r28
+ 2b4:	0e 94 e0 00 	call	0x1c0	; 0x1c0 <USART_Transmit>
 	if (__tmp < 1.0)
 		__ticks = 1;
 	else if (__tmp > 65535)
 	{
 		//	__ticks = requested delay in 1/10 ms
 		__ticks = (uint16_t) (__ms * 10.0);
- 18e:	80 e1       	ldi	r24, 0x10	; 16
- 190:	97 e2       	ldi	r25, 0x27	; 39
- 192:	05 c0       	rjmp	.+10     	; 0x19e <main+0x14>
+ 2b8:	8f ef       	ldi	r24, 0xFF	; 255
+ 2ba:	9f ef       	ldi	r25, 0xFF	; 255
+ 2bc:	05 c0       	rjmp	.+10     	; 0x2c8 <DS1307ReadToUart+0x8e>
     milliseconds can be achieved.
  */
 void
 _delay_loop_2(uint16_t __count)
 {
 	__asm__ volatile (
- 194:	e0 e9       	ldi	r30, 0x90	; 144
- 196:	f1 e0       	ldi	r31, 0x01	; 1
- 198:	31 97       	sbiw	r30, 0x01	; 1
- 19a:	f1 f7       	brne	.-4      	; 0x198 <main+0xe>
+ 2be:	e0 e9       	ldi	r30, 0x90	; 144
+ 2c0:	f1 e0       	ldi	r31, 0x01	; 1
+ 2c2:	31 97       	sbiw	r30, 0x01	; 1
+ 2c4:	f1 f7       	brne	.-4      	; 0x2c2 <DS1307ReadToUart+0x88>
 		while(__ticks)
 		{
 			// wait 1/10 ms
 			_delay_loop_2(((F_CPU) / 4e3) / 10);
 			__ticks --;
- 19c:	01 97       	sbiw	r24, 0x01	; 1
+ 2c6:	01 97       	sbiw	r24, 0x01	; 1
 		__ticks = 1;
 	else if (__tmp > 65535)
 	{
 		//	__ticks = requested delay in 1/10 ms
 		__ticks = (uint16_t) (__ms * 10.0);
 		while(__ticks)
- 19e:	00 97       	sbiw	r24, 0x00	; 0
- 1a0:	c9 f7       	brne	.-14     	; 0x194 <main+0xa>
+ 2c8:	00 97       	sbiw	r24, 0x00	; 0
+ 2ca:	c9 f7       	brne	.-14     	; 0x2be <DS1307ReadToUart+0x84>
+	_delay_ms(10000);
+}
+ 2cc:	df 91       	pop	r29
+ 2ce:	cf 91       	pop	r28
+ 2d0:	1f 91       	pop	r17
+ 2d2:	08 95       	ret
+
+000002d4 <main>:
+
+int main(void) {
+	
+	unsigned char ret;
+	
+	initUSART();
+ 2d4:	0e 94 c5 00 	call	0x18a	; 0x18a <initUSART>
+	if (__tmp < 1.0)
+		__ticks = 1;
+	else if (__tmp > 65535)
+	{
+		//	__ticks = requested delay in 1/10 ms
+		__ticks = (uint16_t) (__ms * 10.0);
+ 2d8:	80 e1       	ldi	r24, 0x10	; 16
+ 2da:	97 e2       	ldi	r25, 0x27	; 39
+ 2dc:	05 c0       	rjmp	.+10     	; 0x2e8 <main+0x14>
+ 2de:	e0 e9       	ldi	r30, 0x90	; 144
+ 2e0:	f1 e0       	ldi	r31, 0x01	; 1
+ 2e2:	31 97       	sbiw	r30, 0x01	; 1
+ 2e4:	f1 f7       	brne	.-4      	; 0x2e2 <main+0xe>
+		while(__ticks)
+		{
+			// wait 1/10 ms
+			_delay_loop_2(((F_CPU) / 4e3) / 10);
+			__ticks --;
+ 2e6:	01 97       	sbiw	r24, 0x01	; 1
+		__ticks = 1;
+	else if (__tmp > 65535)
+	{
+		//	__ticks = requested delay in 1/10 ms
+		__ticks = (uint16_t) (__ms * 10.0);
+		while(__ticks)
+ 2e8:	00 97       	sbiw	r24, 0x00	; 0
+ 2ea:	c9 f7       	brne	.-14     	; 0x2de <main+0xa>
 	_delay_ms(1000); //Temporary
+	//initTimer();
+	i2c_init();
+ 2ec:	0e 94 4b 00 	call	0x96	; 0x96 <i2c_init>
+	
+	DS1307Init(0x00, 0x15, 0x0C);
+ 2f0:	4c e0       	ldi	r20, 0x0C	; 12
+ 2f2:	65 e1       	ldi	r22, 0x15	; 21
+ 2f4:	80 e0       	ldi	r24, 0x00	; 0
+ 2f6:	0e 94 e8 00 	call	0x1d0	; 0x1d0 <DS1307Init>
 	
     while (1) {
-		USART_TransmitPollingHoneywell(STOPAUTOSEND);
- 1a2:	83 e0       	ldi	r24, 0x03	; 3
- 1a4:	90 e0       	ldi	r25, 0x00	; 0
- 1a6:	0e 94 5c 00 	call	0xb8	; 0xb8 <USART_TransmitPollingHoneywell>
-	if (__tmp < 1.0)
-		__ticks = 1;
-	else if (__tmp > 65535)
-	{
-		//	__ticks = requested delay in 1/10 ms
-		__ticks = (uint16_t) (__ms * 10.0);
- 1aa:	80 e5       	ldi	r24, 0x50	; 80
- 1ac:	93 ec       	ldi	r25, 0xC3	; 195
- 1ae:	05 c0       	rjmp	.+10     	; 0x1ba <main+0x30>
- 1b0:	e0 e9       	ldi	r30, 0x90	; 144
- 1b2:	f1 e0       	ldi	r31, 0x01	; 1
- 1b4:	31 97       	sbiw	r30, 0x01	; 1
- 1b6:	f1 f7       	brne	.-4      	; 0x1b4 <main+0x2a>
-		while(__ticks)
-		{
-			// wait 1/10 ms
-			_delay_loop_2(((F_CPU) / 4e3) / 10);
-			__ticks --;
- 1b8:	01 97       	sbiw	r24, 0x01	; 1
-		__ticks = 1;
-	else if (__tmp > 65535)
-	{
-		//	__ticks = requested delay in 1/10 ms
-		__ticks = (uint16_t) (__ms * 10.0);
-		while(__ticks)
- 1ba:	00 97       	sbiw	r24, 0x00	; 0
- 1bc:	c9 f7       	brne	.-14     	; 0x1b0 <main+0x26>
-		_delay_ms(5000); //Temporary
-		USART_TransmitPollingHoneywell(STARTMEASUREMENT);
- 1be:	81 e0       	ldi	r24, 0x01	; 1
- 1c0:	90 e0       	ldi	r25, 0x00	; 0
- 1c2:	0e 94 5c 00 	call	0xb8	; 0xb8 <USART_TransmitPollingHoneywell>
-	if (__tmp < 1.0)
-		__ticks = 1;
-	else if (__tmp > 65535)
-	{
-		//	__ticks = requested delay in 1/10 ms
-		__ticks = (uint16_t) (__ms * 10.0);
- 1c6:	80 e5       	ldi	r24, 0x50	; 80
- 1c8:	93 ec       	ldi	r25, 0xC3	; 195
- 1ca:	05 c0       	rjmp	.+10     	; 0x1d6 <main+0x4c>
- 1cc:	e0 e9       	ldi	r30, 0x90	; 144
- 1ce:	f1 e0       	ldi	r31, 0x01	; 1
- 1d0:	31 97       	sbiw	r30, 0x01	; 1
- 1d2:	f1 f7       	brne	.-4      	; 0x1d0 <main+0x46>
-		while(__ticks)
-		{
-			// wait 1/10 ms
-			_delay_loop_2(((F_CPU) / 4e3) / 10);
-			__ticks --;
- 1d4:	01 97       	sbiw	r24, 0x01	; 1
-		__ticks = 1;
-	else if (__tmp > 65535)
-	{
-		//	__ticks = requested delay in 1/10 ms
-		__ticks = (uint16_t) (__ms * 10.0);
-		while(__ticks)
- 1d6:	00 97       	sbiw	r24, 0x00	; 0
- 1d8:	c9 f7       	brne	.-14     	; 0x1cc <main+0x42>
-		_delay_ms(5000); //Temporary
-		USART_TransmitPollingHoneywell(READVALUE);
- 1da:	80 e0       	ldi	r24, 0x00	; 0
- 1dc:	90 e0       	ldi	r25, 0x00	; 0
- 1de:	0e 94 5c 00 	call	0xb8	; 0xb8 <USART_TransmitPollingHoneywell>
-	if (__tmp < 1.0)
-		__ticks = 1;
-	else if (__tmp > 65535)
-	{
-		//	__ticks = requested delay in 1/10 ms
-		__ticks = (uint16_t) (__ms * 10.0);
- 1e2:	8f ef       	ldi	r24, 0xFF	; 255
- 1e4:	9f ef       	ldi	r25, 0xFF	; 255
- 1e6:	05 c0       	rjmp	.+10     	; 0x1f2 <main+0x68>
- 1e8:	e0 e9       	ldi	r30, 0x90	; 144
- 1ea:	f1 e0       	ldi	r31, 0x01	; 1
- 1ec:	31 97       	sbiw	r30, 0x01	; 1
- 1ee:	f1 f7       	brne	.-4      	; 0x1ec <main+0x62>
-		while(__ticks)
-		{
-			// wait 1/10 ms
-			_delay_loop_2(((F_CPU) / 4e3) / 10);
-			__ticks --;
- 1f0:	01 97       	sbiw	r24, 0x01	; 1
-		__ticks = 1;
-	else if (__tmp > 65535)
-	{
-		//	__ticks = requested delay in 1/10 ms
-		__ticks = (uint16_t) (__ms * 10.0);
-		while(__ticks)
- 1f2:	00 97       	sbiw	r24, 0x00	; 0
- 1f4:	c9 f7       	brne	.-14     	; 0x1e8 <main+0x5e>
-		_delay_ms(10000); //Temporary
-		USART_TransmitPollingHoneywell(STOPMEASUREMENT);
- 1f6:	82 e0       	ldi	r24, 0x02	; 2
- 1f8:	90 e0       	ldi	r25, 0x00	; 0
- 1fa:	0e 94 5c 00 	call	0xb8	; 0xb8 <USART_TransmitPollingHoneywell>
-    }
- 1fe:	d1 cf       	rjmp	.-94     	; 0x1a2 <main+0x18>
+		DS1307ReadToUart();
+ 2fa:	0e 94 1d 01 	call	0x23a	; 0x23a <DS1307ReadToUart>
+ 2fe:	fd cf       	rjmp	.-6      	; 0x2fa <main+0x26>
 
-00000200 <_exit>:
- 200:	f8 94       	cli
+00000300 <_exit>:
+ 300:	f8 94       	cli
 
-00000202 <__stop_program>:
- 202:	ff cf       	rjmp	.-2      	; 0x202 <__stop_program>
+00000302 <__stop_program>:
+ 302:	ff cf       	rjmp	.-2      	; 0x302 <__stop_program>
