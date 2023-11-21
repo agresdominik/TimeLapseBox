@@ -8,15 +8,13 @@
 #define __DELAY_BACKWARD_COMPATIBLE__
 #define F_CPU 16000000UL
 
-#include <avr/io.h>
-#include <avr/interrupt.h>	// Manage interrupts (timer, ... interrupts)
-#include <stdio.h>
-#include <util/delay.h>
-//RTC Clock
-#include <twimaster.c>		//TODO: c file import works only?
+#include <avr/io.h>			// AVR Standard IO
+#include <avr/interrupt.h>	// Manage interrupts
+#include <util/delay.h>		//Delay					TODO: Substitute with Timer
+#include <twimaster.c>		//RTC Clock				TODO: c file import works only?
 
-//Defines for the ds1307 RTC TWI interface
-#define DS1307 0xD0					//0x68 bit shifted to left
+//Defines Addresses for the ds1307 RTC TWI interface (See DS1307 data sheet for more information)
+#define DS1307 0xD0					//0x68 bit shifted to left one time
 #define DS1307Second 0x00			//Address for the seconds on the DS1307
 #define DS1307Minute 0x01			//Address for the minutes on the DS1307
 #define DS1307Hour 0x02				//Address for the Hours on the DS1307
@@ -25,24 +23,21 @@
 #define DS1307Month 0x05			//Address for the Month on the DS1307
 #define DS1307Year 0x06				//Address for the Year on the DS1307
 
-// USART Baud rate and Prescaler/Divider
+// USART Baud rate and Prescaler/Divider (See AtMega328P data sheet for more information)
 #define USART_BAUDRATE 9600
 #define BAUD_PRESCALER (((F_CPU / (USART_BAUDRATE * 16UL))) - 1)
 
 // USART Mode Selection
 #define ASYNCHRONOUS (0<<UMSEL00)
-
 // USART Parity Bit Selection
 #define DISABLED    (0<<UPM00)
 #define EVEN_PARITY (2<<UPM00)
 #define ODD_PARITY  (3<<UPM00)
 #define PARITY_MODE  DISABLED
-
 // USART Stop Bit Selection
 #define ONE_BIT (0<<USBS0)
 #define TWO_BIT (1<<USBS0)
 #define STOP_BIT ONE_BIT
-
 // USART Data Bit Selection
 #define FIVE_BIT  (0<<UCSZ00)
 #define SIX_BIT   (1<<UCSZ00)
@@ -50,7 +45,7 @@
 #define EIGHT_BIT (3<<UCSZ00)
 #define DATA_BIT   EIGHT_BIT
 
-/* A value passed to the transmit function for differentiating transmit modes */
+/* A value passed to the transmit function for differentiating transmit modes in the Honeywell PM Sensor */
 enum transmitFlag {
 	READVALUE,
 	STARTMEASUREMENT,
@@ -59,7 +54,7 @@ enum transmitFlag {
 	ENABLEAUTOSEND
 };
 
-/* Predeclared Command Values for the Honeywell PM Sensor */
+/* Predeclared Command Values for the Honeywell PM Sensor (See Honeywell data sheet for more information) */
 static uint8_t readCommand[4] = {0x68, 0x01, 0x04, 0x93};
 static uint8_t startMeasurementCommand[4] = {0x68, 0x01, 0x01, 0x96};
 static uint8_t stopMeasurementCommand[4] = {0x68, 0x01, 0x02, 0x95};
@@ -198,7 +193,6 @@ void USART_TransmitPollingHoneywell(transmitFlag) {
 	}
 }
 
-
 /* 
 	Function witch saves the 2 Byte Positive or Negative ACK in a variable and checks if it is valid.
 	Called Upon when the Honeywell sensor gets a command witch changes its behavior.
@@ -233,6 +227,11 @@ void USARTReceiveValues( void ) {
 	
 }
 
+/*
+	Function called to initialize the DS1307 RTC Module.
+	A hexadecimal value for actual second, minute and hour should be passed and will be set as actual time on the RTC clock.
+	If no i2c device can be found, a error clause will trigger.
+*/
 void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour) {
 	
 	unsigned char check;
@@ -244,7 +243,7 @@ void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour)
 	} else {
 		i2c_stop();
 		
-		//Initializes the seconds to given value, IMPORTANT: the bit 7 (see datasheet) needs to be a 0 for the clock to run
+		//Initializes the seconds to given value, IMPORTANT: the bit 7 (see data sheet) needs to be a 0 for the clock to run
 		i2c_start_wait(DS1307+I2C_WRITE);
 		i2c_write(DS1307Second);
 		i2c_write(second);
@@ -266,35 +265,40 @@ void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour)
 	}
 }
 
+/*
+	Function called to read the RTC Values and (rn) transfer this data via UART
+*/
 void DS1307ReadToUart ( void ) {
+	//Placeholders
 	unsigned char second;
 	unsigned char minute;
 	unsigned char hour;
 	
+	//Read Second value and save it
 	i2c_start_wait(DS1307+I2C_WRITE);
 	i2c_write(DS1307Second);
 	i2c_rep_start(DS1307+I2C_READ);
 	second = i2c_readNak();
 	i2c_stop();
 	
+	//Read Minute value and save it
 	i2c_start_wait(DS1307+I2C_WRITE);
 	i2c_write(DS1307Minute);
 	i2c_rep_start(DS1307+I2C_READ);
 	minute = i2c_readNak();
 	i2c_stop();
 	
+	//Read Hour value and save it
 	i2c_start_wait(DS1307+I2C_WRITE);
 	i2c_write(DS1307Hour);
 	i2c_rep_start(DS1307+I2C_READ);
 	hour = i2c_readNak();
 	i2c_stop();
 	
-	//USART_Transmit('S');
+	//Transmit the saved values via a UART interface
 	USART_Transmit(second);
-	//USART_Transmit('M');
-	//USART_Transmit(minute);
-	//USART_Transmit('H');
-	//USART_Transmit(hour);
+	USART_Transmit(minute);
+	USART_Transmit(hour);
 	_delay_ms(1000);
 }
 
