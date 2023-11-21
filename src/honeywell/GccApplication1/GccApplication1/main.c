@@ -289,13 +289,13 @@ void DS1307ReadToUart ( void ) {
 	hour = i2c_readNak();
 	i2c_stop();
 	
-	USART_Transmit('S');
+	//USART_Transmit('S');
 	USART_Transmit(second);
-	USART_Transmit('M');
-	USART_Transmit(minute);
-	USART_Transmit('H');
-	USART_Transmit(hour);
-	_delay_ms(10000);
+	//USART_Transmit('M');
+	//USART_Transmit(minute);
+	//USART_Transmit('H');
+	//USART_Transmit(hour);
+	_delay_ms(1000);
 }
 
 int main(void) {
@@ -307,7 +307,7 @@ int main(void) {
 	//initTimer();
 	i2c_init();
 	
-	DS1307Init(0x00, 0x15, 0x0C);
+	DS1307Init(0x00, 0x00, 0x00);
 	
     while (1) {
 		DS1307ReadToUart();
