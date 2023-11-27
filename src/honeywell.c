@@ -1,5 +1,5 @@
 /*
- * GccApplication1.c
+ * honeywell.c
  *
  * Created: 26/10/2023 16:45:35
  * Author : agres
@@ -8,9 +8,10 @@
 #define __DELAY_BACKWARD_COMPATIBLE__
 #define F_CPU 16000000UL
 
-#include "avr/io.h"			                    // AVR Standard IO
-#include "lib/avr/interrupt.h"	                  // Manage interrupts
-#include "lib/twimaster/twimaster.c"		        //RTC Clock				TODO: c file import works only?
+#include <avr/io.h>			                    // AVR Standard IO
+#include <avr/interrupt.h>	                  // Manage interrupts
+#include <util/delay.h>		//Delay					TODO: Substitute with Timer
+#include "../lib/twimaster/twimaster.c"		        //RTC Clock				TODO: c file import works only?
 
 //Defines Addresses for the ds1307 RTC TWI interface (See DS1307 data sheet for more information)
 #define DS1307 0xD0					//0x68 bit shifted to left one time
@@ -301,6 +302,7 @@ void DS1307ReadToUart ( void ) {
 	_delay_ms(1000);
 }
 
+/*
 int main(void) {
 	
 	unsigned char ret;
@@ -328,3 +330,4 @@ int main(void) {
     
     return 0;
 }
+*/
