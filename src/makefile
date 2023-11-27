@@ -1,12 +1,16 @@
 #Device Name used by AVRDude
 DEVICE = atmega328p
 #Programmer used by AVRDude
-PROGRAMMER = STK500
+PROGRAMMER = stk500v2
 #Name of file to be compiled in src directory
 FILENAME = main
+#Target build folder
 BUILDDIR = ../build/
+#Port on witch the device is connected
 PORT = ...
+#Baud rate for communication between programmer and this device
 BAUD = 115200
+#Compile Command using avr-gcc -Wall: show all warnings -Os: optimizer for size
 COMPILE = avr-gcc -Wall -Os -mmcu=$(DEVICE)
 
 default: compile upload clean
