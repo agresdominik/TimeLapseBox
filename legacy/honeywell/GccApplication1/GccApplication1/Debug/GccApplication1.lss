@@ -3,29 +3,29 @@ GccApplication1.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .data         00000000  00800100  00800100  00000346  2**0
+  0 .data         00000000  00800100  00800100  000002be  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         000002f2  00000000  00000000  00000054  2**1
+  1 .text         0000026a  00000000  00000000  00000054  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .comment      00000030  00000000  00000000  00000346  2**0
+  2 .comment      00000030  00000000  00000000  000002be  2**0
                   CONTENTS, READONLY
-  3 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  00000378  2**2
+  3 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  000002f0  2**2
                   CONTENTS, READONLY
-  4 .debug_aranges 000000b8  00000000  00000000  000003b8  2**0
+  4 .debug_aranges 000000d0  00000000  00000000  00000330  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_info   00000eb4  00000000  00000000  00000470  2**0
+  5 .debug_info   00000f5b  00000000  00000000  00000400  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_abbrev 00000810  00000000  00000000  00001324  2**0
+  6 .debug_abbrev 00000810  00000000  00000000  0000135b  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_line   0000087e  00000000  00000000  00001b34  2**0
+  7 .debug_line   0000090b  00000000  00000000  00001b6b  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_frame  000001bc  00000000  00000000  000023b4  2**2
+  8 .debug_frame  000001ec  00000000  00000000  00002478  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    00000596  00000000  00000000  00002570  2**0
+  9 .debug_str    000005bd  00000000  00000000  00002664  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    000006ba  00000000  00000000  00002b06  2**0
+ 10 .debug_loc    00000726  00000000  00000000  00002c21  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_ranges 00000120  00000000  00000000  000031c0  2**0
+ 11 .debug_ranges 00000138  00000000  00000000  00003347  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -42,7 +42,7 @@ Disassembly of section .text:
   20:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
   24:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
   28:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
-  2c:	0c 94 d1 00 	jmp	0x1a2	; 0x1a2 <__vector_11>
+  2c:	0c 94 d0 00 	jmp	0x1a0	; 0x1a0 <__vector_11>
   30:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
   34:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
   38:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
@@ -70,7 +70,7 @@ Disassembly of section .text:
   74:	11 e0       	ldi	r17, 0x01	; 1
   76:	a0 e0       	ldi	r26, 0x00	; 0
   78:	b1 e0       	ldi	r27, 0x01	; 1
-  7a:	e2 ef       	ldi	r30, 0xF2	; 242
+  7a:	ea e6       	ldi	r30, 0x6A	; 106
   7c:	f2 e0       	ldi	r31, 0x02	; 2
   7e:	02 c0       	rjmp	.+4      	; 0x84 <__do_copy_data+0x10>
   80:	05 90       	lpm	r0, Z+
@@ -78,18 +78,18 @@ Disassembly of section .text:
   84:	a0 30       	cpi	r26, 0x00	; 0
   86:	b1 07       	cpc	r27, r17
   88:	d9 f7       	brne	.-10     	; 0x80 <__do_copy_data+0xc>
-  8a:	0e 94 61 01 	call	0x2c2	; 0x2c2 <main>
-  8e:	0c 94 77 01 	jmp	0x2ee	; 0x2ee <_exit>
+  8a:	0e 94 0f 01 	call	0x21e	; 0x21e <main>
+  8e:	0c 94 33 01 	jmp	0x266	; 0x266 <_exit>
 
 00000092 <__bad_interrupt>:
   92:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
 
 00000096 <i2c_init>:
-		dataRecived[i] = USARTReceive();
-	}
-	
-	//TODO Evaluate Data and do something
-	
+	//Transmit the saved values via a UART interface
+	USART_Transmit(second);
+	USART_Transmit(minute);
+	USART_Transmit(hour);
+	_delay_ms(1000);
 }
   96:	10 92 b9 00 	sts	0x00B9, r1	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7f80b9>
   9a:	88 e4       	ldi	r24, 0x48	; 72
@@ -161,320 +161,205 @@ Disassembly of section .text:
  138:	da cf       	rjmp	.-76     	; 0xee <i2c_start_wait>
  13a:	08 95       	ret
 
-0000013c <i2c_rep_start>:
- 13c:	0e 94 51 00 	call	0xa2	; 0xa2 <i2c_start>
- 140:	08 95       	ret
+0000013c <i2c_stop>:
+ 13c:	84 e9       	ldi	r24, 0x94	; 148
+ 13e:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 142:	80 91 bc 00 	lds	r24, 0x00BC	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 146:	84 fd       	sbrc	r24, 4
+ 148:	fc cf       	rjmp	.-8      	; 0x142 <i2c_stop+0x6>
+ 14a:	08 95       	ret
 
-00000142 <i2c_stop>:
- 142:	84 e9       	ldi	r24, 0x94	; 148
- 144:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
- 148:	80 91 bc 00 	lds	r24, 0x00BC	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
- 14c:	84 fd       	sbrc	r24, 4
- 14e:	fc cf       	rjmp	.-8      	; 0x148 <i2c_stop+0x6>
- 150:	08 95       	ret
+0000014c <i2c_write>:
+ 14c:	80 93 bb 00 	sts	0x00BB, r24	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
+ 150:	84 e8       	ldi	r24, 0x84	; 132
+ 152:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 156:	80 91 bc 00 	lds	r24, 0x00BC	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+ 15a:	88 23       	and	r24, r24
+ 15c:	e4 f7       	brge	.-8      	; 0x156 <i2c_write+0xa>
+ 15e:	80 91 b9 00 	lds	r24, 0x00B9	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7f80b9>
+ 162:	88 7f       	andi	r24, 0xF8	; 248
+ 164:	88 32       	cpi	r24, 0x28	; 40
+ 166:	11 f0       	breq	.+4      	; 0x16c <i2c_write+0x20>
+ 168:	81 e0       	ldi	r24, 0x01	; 1
+ 16a:	08 95       	ret
+ 16c:	80 e0       	ldi	r24, 0x00	; 0
+ 16e:	08 95       	ret
 
-00000152 <i2c_write>:
- 152:	80 93 bb 00 	sts	0x00BB, r24	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
- 156:	84 e8       	ldi	r24, 0x84	; 132
- 158:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
- 15c:	80 91 bc 00 	lds	r24, 0x00BC	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
- 160:	88 23       	and	r24, r24
- 162:	e4 f7       	brge	.-8      	; 0x15c <i2c_write+0xa>
- 164:	80 91 b9 00 	lds	r24, 0x00B9	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7f80b9>
- 168:	88 7f       	andi	r24, 0xF8	; 248
- 16a:	88 32       	cpi	r24, 0x28	; 40
- 16c:	11 f0       	breq	.+4      	; 0x172 <i2c_write+0x20>
- 16e:	81 e0       	ldi	r24, 0x01	; 1
- 170:	08 95       	ret
- 172:	80 e0       	ldi	r24, 0x00	; 0
- 174:	08 95       	ret
+00000170 <initialisePinOut>:
+ 170:	84 b1       	in	r24, 0x04	; 4
+ 172:	81 60       	ori	r24, 0x01	; 1
+ 174:	84 b9       	out	0x04, r24	; 4
+ 176:	08 95       	ret
 
-00000176 <i2c_readNak>:
- 176:	84 e8       	ldi	r24, 0x84	; 132
- 178:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
- 17c:	80 91 bc 00 	lds	r24, 0x00BC	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
- 180:	88 23       	and	r24, r24
- 182:	e4 f7       	brge	.-8      	; 0x17c <i2c_readNak+0x6>
- 184:	80 91 bb 00 	lds	r24, 0x00BB	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
- 188:	08 95       	ret
+00000178 <turnPiOn>:
+ 178:	85 b1       	in	r24, 0x05	; 5
+ 17a:	81 60       	ori	r24, 0x01	; 1
+ 17c:	85 b9       	out	0x05, r24	; 5
+ 17e:	08 95       	ret
 
-0000018a <initUSART>:
- 18a:	10 92 c5 00 	sts	0x00C5, r1	; 0x8000c5 <__TEXT_REGION_LENGTH__+0x7f80c5>
- 18e:	87 e6       	ldi	r24, 0x67	; 103
- 190:	80 93 c4 00 	sts	0x00C4, r24	; 0x8000c4 <__TEXT_REGION_LENGTH__+0x7f80c4>
- 194:	88 e1       	ldi	r24, 0x18	; 24
- 196:	80 93 c1 00 	sts	0x00C1, r24	; 0x8000c1 <__TEXT_REGION_LENGTH__+0x7f80c1>
- 19a:	86 e0       	ldi	r24, 0x06	; 6
- 19c:	80 93 c2 00 	sts	0x00C2, r24	; 0x8000c2 <__TEXT_REGION_LENGTH__+0x7f80c2>
- 1a0:	08 95       	ret
+00000180 <turnPiOff>:
+ 180:	85 b1       	in	r24, 0x05	; 5
+ 182:	8e 7f       	andi	r24, 0xFE	; 254
+ 184:	85 b9       	out	0x05, r24	; 5
+ 186:	08 95       	ret
 
-000001a2 <__vector_11>:
- 1a2:	1f 92       	push	r1
- 1a4:	0f 92       	push	r0
- 1a6:	0f b6       	in	r0, 0x3f	; 63
- 1a8:	0f 92       	push	r0
- 1aa:	11 24       	eor	r1, r1
- 1ac:	0f 90       	pop	r0
- 1ae:	0f be       	out	0x3f, r0	; 63
- 1b0:	0f 90       	pop	r0
- 1b2:	1f 90       	pop	r1
- 1b4:	18 95       	reti
+00000188 <initUSART>:
+ 188:	10 92 c5 00 	sts	0x00C5, r1	; 0x8000c5 <__TEXT_REGION_LENGTH__+0x7f80c5>
+ 18c:	87 e6       	ldi	r24, 0x67	; 103
+ 18e:	80 93 c4 00 	sts	0x00C4, r24	; 0x8000c4 <__TEXT_REGION_LENGTH__+0x7f80c4>
+ 192:	88 e1       	ldi	r24, 0x18	; 24
+ 194:	80 93 c1 00 	sts	0x00C1, r24	; 0x8000c1 <__TEXT_REGION_LENGTH__+0x7f80c1>
+ 198:	86 e0       	ldi	r24, 0x06	; 6
+ 19a:	80 93 c2 00 	sts	0x00C2, r24	; 0x8000c2 <__TEXT_REGION_LENGTH__+0x7f80c2>
+ 19e:	08 95       	ret
 
-000001b6 <USART_WaitUntilReady>:
- 1b6:	80 91 c0 00 	lds	r24, 0x00C0	; 0x8000c0 <__TEXT_REGION_LENGTH__+0x7f80c0>
- 1ba:	85 ff       	sbrs	r24, 5
- 1bc:	fc cf       	rjmp	.-8      	; 0x1b6 <USART_WaitUntilReady>
- 1be:	08 95       	ret
+000001a0 <__vector_11>:
+ 1a0:	1f 92       	push	r1
+ 1a2:	0f 92       	push	r0
+ 1a4:	0f b6       	in	r0, 0x3f	; 63
+ 1a6:	0f 92       	push	r0
+ 1a8:	11 24       	eor	r1, r1
+ 1aa:	0f 90       	pop	r0
+ 1ac:	0f be       	out	0x3f, r0	; 63
+ 1ae:	0f 90       	pop	r0
+ 1b0:	1f 90       	pop	r1
+ 1b2:	18 95       	reti
 
-000001c0 <USART_Transmit>:
- 1c0:	cf 93       	push	r28
- 1c2:	c8 2f       	mov	r28, r24
- 1c4:	0e 94 db 00 	call	0x1b6	; 0x1b6 <USART_WaitUntilReady>
- 1c8:	c0 93 c6 00 	sts	0x00C6, r28	; 0x8000c6 <__TEXT_REGION_LENGTH__+0x7f80c6>
- 1cc:	cf 91       	pop	r28
- 1ce:	08 95       	ret
+000001b4 <DS1307Init>:
+ 1b4:	1f 93       	push	r17
+ 1b6:	cf 93       	push	r28
+ 1b8:	df 93       	push	r29
+ 1ba:	18 2f       	mov	r17, r24
+ 1bc:	d6 2f       	mov	r29, r22
+ 1be:	c4 2f       	mov	r28, r20
+ 1c0:	80 ed       	ldi	r24, 0xD0	; 208
+ 1c2:	0e 94 51 00 	call	0xa2	; 0xa2 <i2c_start>
+ 1c6:	88 23       	and	r24, r24
+ 1c8:	19 f0       	breq	.+6      	; 0x1d0 <DS1307Init+0x1c>
+ 1ca:	0e 94 9e 00 	call	0x13c	; 0x13c <i2c_stop>
+ 1ce:	23 c0       	rjmp	.+70     	; 0x216 <DS1307Init+0x62>
+ 1d0:	0e 94 9e 00 	call	0x13c	; 0x13c <i2c_stop>
+ 1d4:	80 ed       	ldi	r24, 0xD0	; 208
+ 1d6:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
+ 1da:	80 e0       	ldi	r24, 0x00	; 0
+ 1dc:	0e 94 a6 00 	call	0x14c	; 0x14c <i2c_write>
+ 1e0:	81 2f       	mov	r24, r17
+ 1e2:	0e 94 a6 00 	call	0x14c	; 0x14c <i2c_write>
+ 1e6:	0e 94 9e 00 	call	0x13c	; 0x13c <i2c_stop>
+ 1ea:	80 ed       	ldi	r24, 0xD0	; 208
+ 1ec:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
+ 1f0:	81 e0       	ldi	r24, 0x01	; 1
+ 1f2:	0e 94 a6 00 	call	0x14c	; 0x14c <i2c_write>
+ 1f6:	8d 2f       	mov	r24, r29
+ 1f8:	0e 94 a6 00 	call	0x14c	; 0x14c <i2c_write>
+ 1fc:	0e 94 9e 00 	call	0x13c	; 0x13c <i2c_stop>
+ 200:	80 ed       	ldi	r24, 0xD0	; 208
+ 202:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
+ 206:	82 e0       	ldi	r24, 0x02	; 2
+ 208:	0e 94 a6 00 	call	0x14c	; 0x14c <i2c_write>
+ 20c:	8c 2f       	mov	r24, r28
+ 20e:	0e 94 a6 00 	call	0x14c	; 0x14c <i2c_write>
+ 212:	0e 94 9e 00 	call	0x13c	; 0x13c <i2c_stop>
+ 216:	df 91       	pop	r29
+ 218:	cf 91       	pop	r28
+ 21a:	1f 91       	pop	r17
+ 21c:	08 95       	ret
 
-000001d0 <DS1307Init>:
-/*
-	Function called to initialize the DS1307 RTC Module.
-	A hexadecimal value for actual second, minute and hour should be passed and will be set as actual time on the RTC clock.
-	If no i2c device can be found, a error clause will trigger.
-*/
-void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour) {
- 1d0:	1f 93       	push	r17
- 1d2:	cf 93       	push	r28
- 1d4:	df 93       	push	r29
- 1d6:	18 2f       	mov	r17, r24
- 1d8:	d6 2f       	mov	r29, r22
- 1da:	c4 2f       	mov	r28, r20
-	
-	unsigned char check;
-	
-	check = i2c_start(DS1307+I2C_WRITE);
- 1dc:	80 ed       	ldi	r24, 0xD0	; 208
- 1de:	0e 94 51 00 	call	0xa2	; 0xa2 <i2c_start>
-	if ( check ) {
- 1e2:	88 23       	and	r24, r24
- 1e4:	19 f0       	breq	.+6      	; 0x1ec <DS1307Init+0x1c>
-		/* Failed to issue start condition, Error message here */
-		i2c_stop();
- 1e6:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
- 1ea:	23 c0       	rjmp	.+70     	; 0x232 <DS1307Init+0x62>
-	} else {
-		i2c_stop();
- 1ec:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
-		
-		//Initializes the seconds to given value, IMPORTANT: the bit 7 (see data sheet) needs to be a 0 for the clock to run
-		i2c_start_wait(DS1307+I2C_WRITE);
- 1f0:	80 ed       	ldi	r24, 0xD0	; 208
- 1f2:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
-		i2c_write(DS1307Second);
- 1f6:	80 e0       	ldi	r24, 0x00	; 0
- 1f8:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
-		i2c_write(second);
- 1fc:	81 2f       	mov	r24, r17
- 1fe:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
-		i2c_stop();
- 202:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
-	
-		//Initializes the Minutes to given value
-		i2c_start_wait(DS1307+I2C_WRITE);
- 206:	80 ed       	ldi	r24, 0xD0	; 208
- 208:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
-		i2c_write(DS1307Minute);
- 20c:	81 e0       	ldi	r24, 0x01	; 1
- 20e:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
-		i2c_write(minute);
- 212:	8d 2f       	mov	r24, r29
- 214:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
-		i2c_stop();
- 218:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
-	
-		//Initializes the Hour to given value
-		i2c_start_wait(DS1307+I2C_WRITE);
- 21c:	80 ed       	ldi	r24, 0xD0	; 208
- 21e:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
-		i2c_write(DS1307Hour);
- 222:	82 e0       	ldi	r24, 0x02	; 2
- 224:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
-		i2c_write(hour);
- 228:	8c 2f       	mov	r24, r28
- 22a:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
-		i2c_stop();
- 22e:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
-		
-		//... are days ... important?
-	}
-}
- 232:	df 91       	pop	r29
- 234:	cf 91       	pop	r28
- 236:	1f 91       	pop	r17
- 238:	08 95       	ret
-
-0000023a <DS1307ReadToUart>:
-
-/*
-	Function called to read the RTC Values and (rn) transfer this data via UART
-*/
-void DS1307ReadToUart ( void ) {
- 23a:	1f 93       	push	r17
- 23c:	cf 93       	push	r28
- 23e:	df 93       	push	r29
-	unsigned char second;
-	unsigned char minute;
-	unsigned char hour;
-	
-	//Read Second value and save it
-	i2c_start_wait(DS1307+I2C_WRITE);
- 240:	80 ed       	ldi	r24, 0xD0	; 208
- 242:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
-	i2c_write(DS1307Second);
- 246:	80 e0       	ldi	r24, 0x00	; 0
- 248:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
-	i2c_rep_start(DS1307+I2C_READ);
- 24c:	81 ed       	ldi	r24, 0xD1	; 209
- 24e:	0e 94 9e 00 	call	0x13c	; 0x13c <i2c_rep_start>
-	second = i2c_readNak();
- 252:	0e 94 bb 00 	call	0x176	; 0x176 <i2c_readNak>
- 256:	18 2f       	mov	r17, r24
-	i2c_stop();
- 258:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
-	
-	//Read Minute value and save it
-	i2c_start_wait(DS1307+I2C_WRITE);
- 25c:	80 ed       	ldi	r24, 0xD0	; 208
- 25e:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
-	i2c_write(DS1307Minute);
- 262:	81 e0       	ldi	r24, 0x01	; 1
- 264:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
-	i2c_rep_start(DS1307+I2C_READ);
- 268:	81 ed       	ldi	r24, 0xD1	; 209
- 26a:	0e 94 9e 00 	call	0x13c	; 0x13c <i2c_rep_start>
-	minute = i2c_readNak();
- 26e:	0e 94 bb 00 	call	0x176	; 0x176 <i2c_readNak>
- 272:	d8 2f       	mov	r29, r24
-	i2c_stop();
- 274:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
-	
-	//Read Hour value and save it
-	i2c_start_wait(DS1307+I2C_WRITE);
- 278:	80 ed       	ldi	r24, 0xD0	; 208
- 27a:	0e 94 77 00 	call	0xee	; 0xee <i2c_start_wait>
-	i2c_write(DS1307Hour);
- 27e:	82 e0       	ldi	r24, 0x02	; 2
- 280:	0e 94 a9 00 	call	0x152	; 0x152 <i2c_write>
-	i2c_rep_start(DS1307+I2C_READ);
- 284:	81 ed       	ldi	r24, 0xD1	; 209
- 286:	0e 94 9e 00 	call	0x13c	; 0x13c <i2c_rep_start>
-	hour = i2c_readNak();
- 28a:	0e 94 bb 00 	call	0x176	; 0x176 <i2c_readNak>
- 28e:	c8 2f       	mov	r28, r24
-	i2c_stop();
- 290:	0e 94 a1 00 	call	0x142	; 0x142 <i2c_stop>
-	
-	//Transmit the saved values via a UART interface
-	USART_Transmit(second);
- 294:	81 2f       	mov	r24, r17
- 296:	0e 94 e0 00 	call	0x1c0	; 0x1c0 <USART_Transmit>
-	USART_Transmit(minute);
- 29a:	8d 2f       	mov	r24, r29
- 29c:	0e 94 e0 00 	call	0x1c0	; 0x1c0 <USART_Transmit>
-	USART_Transmit(hour);
- 2a0:	8c 2f       	mov	r24, r28
- 2a2:	0e 94 e0 00 	call	0x1c0	; 0x1c0 <USART_Transmit>
-	if (__tmp < 1.0)
-		__ticks = 1;
-	else if (__tmp > 65535)
-	{
-		//	__ticks = requested delay in 1/10 ms
-		__ticks = (uint16_t) (__ms * 10.0);
- 2a6:	80 e1       	ldi	r24, 0x10	; 16
- 2a8:	97 e2       	ldi	r25, 0x27	; 39
- 2aa:	05 c0       	rjmp	.+10     	; 0x2b6 <DS1307ReadToUart+0x7c>
-    milliseconds can be achieved.
- */
-void
-_delay_loop_2(uint16_t __count)
-{
-	__asm__ volatile (
- 2ac:	e0 e9       	ldi	r30, 0x90	; 144
- 2ae:	f1 e0       	ldi	r31, 0x01	; 1
- 2b0:	31 97       	sbiw	r30, 0x01	; 1
- 2b2:	f1 f7       	brne	.-4      	; 0x2b0 <DS1307ReadToUart+0x76>
-		while(__ticks)
-		{
-			// wait 1/10 ms
-			_delay_loop_2(((F_CPU) / 4e3) / 10);
-			__ticks --;
- 2b4:	01 97       	sbiw	r24, 0x01	; 1
-		__ticks = 1;
-	else if (__tmp > 65535)
-	{
-		//	__ticks = requested delay in 1/10 ms
-		__ticks = (uint16_t) (__ms * 10.0);
-		while(__ticks)
- 2b6:	00 97       	sbiw	r24, 0x00	; 0
- 2b8:	c9 f7       	brne	.-14     	; 0x2ac <DS1307ReadToUart+0x72>
-	_delay_ms(1000);
-}
- 2ba:	df 91       	pop	r29
- 2bc:	cf 91       	pop	r28
- 2be:	1f 91       	pop	r17
- 2c0:	08 95       	ret
-
-000002c2 <main>:
+0000021e <main>:
 
 int main(void) {
 	
 	unsigned char ret;
 	
 	initUSART();
- 2c2:	0e 94 c5 00 	call	0x18a	; 0x18a <initUSART>
+ 21e:	0e 94 c4 00 	call	0x188	; 0x188 <initUSART>
 	if (__tmp < 1.0)
 		__ticks = 1;
 	else if (__tmp > 65535)
 	{
 		//	__ticks = requested delay in 1/10 ms
 		__ticks = (uint16_t) (__ms * 10.0);
- 2c6:	80 e1       	ldi	r24, 0x10	; 16
- 2c8:	97 e2       	ldi	r25, 0x27	; 39
- 2ca:	05 c0       	rjmp	.+10     	; 0x2d6 <main+0x14>
- 2cc:	e0 e9       	ldi	r30, 0x90	; 144
- 2ce:	f1 e0       	ldi	r31, 0x01	; 1
- 2d0:	31 97       	sbiw	r30, 0x01	; 1
- 2d2:	f1 f7       	brne	.-4      	; 0x2d0 <main+0xe>
+ 222:	80 e1       	ldi	r24, 0x10	; 16
+ 224:	97 e2       	ldi	r25, 0x27	; 39
+ 226:	05 c0       	rjmp	.+10     	; 0x232 <main+0x14>
+    milliseconds can be achieved.
+ */
+void
+_delay_loop_2(uint16_t __count)
+{
+	__asm__ volatile (
+ 228:	e0 e9       	ldi	r30, 0x90	; 144
+ 22a:	f1 e0       	ldi	r31, 0x01	; 1
+ 22c:	31 97       	sbiw	r30, 0x01	; 1
+ 22e:	f1 f7       	brne	.-4      	; 0x22c <main+0xe>
 		while(__ticks)
 		{
 			// wait 1/10 ms
 			_delay_loop_2(((F_CPU) / 4e3) / 10);
 			__ticks --;
- 2d4:	01 97       	sbiw	r24, 0x01	; 1
+ 230:	01 97       	sbiw	r24, 0x01	; 1
 		__ticks = 1;
 	else if (__tmp > 65535)
 	{
 		//	__ticks = requested delay in 1/10 ms
 		__ticks = (uint16_t) (__ms * 10.0);
 		while(__ticks)
- 2d6:	00 97       	sbiw	r24, 0x00	; 0
- 2d8:	c9 f7       	brne	.-14     	; 0x2cc <main+0xa>
+ 232:	00 97       	sbiw	r24, 0x00	; 0
+ 234:	c9 f7       	brne	.-14     	; 0x228 <main+0xa>
 	_delay_ms(1000); //Temporary
 	//initTimer();
 	i2c_init();
- 2da:	0e 94 4b 00 	call	0x96	; 0x96 <i2c_init>
+ 236:	0e 94 4b 00 	call	0x96	; 0x96 <i2c_init>
 	
 	DS1307Init(0x00, 0x00, 0x00);
- 2de:	40 e0       	ldi	r20, 0x00	; 0
- 2e0:	60 e0       	ldi	r22, 0x00	; 0
- 2e2:	80 e0       	ldi	r24, 0x00	; 0
- 2e4:	0e 94 e8 00 	call	0x1d0	; 0x1d0 <DS1307Init>
-	
-    while (1) {
-		DS1307ReadToUart();
- 2e8:	0e 94 1d 01 	call	0x23a	; 0x23a <DS1307ReadToUart>
- 2ec:	fd cf       	rjmp	.-6      	; 0x2e8 <main+0x26>
+ 23a:	40 e0       	ldi	r20, 0x00	; 0
+ 23c:	60 e0       	ldi	r22, 0x00	; 0
+ 23e:	80 e0       	ldi	r24, 0x00	; 0
+ 240:	0e 94 da 00 	call	0x1b4	; 0x1b4 <DS1307Init>
+	initialisePinOut();
+ 244:	0e 94 b8 00 	call	0x170	; 0x170 <initialisePinOut>
+		//_delay_ms(5000); //Temporary
+		//USART_TransmitPollingHoneywell(READVALUE);
+		//_delay_ms(10000); //Temporary
+		//USART_TransmitPollingHoneywell(STOPMEASUREMENT);
+		
+		turnPiOn();
+ 248:	0e 94 bc 00 	call	0x178	; 0x178 <turnPiOn>
+	if (__tmp < 1.0)
+		__ticks = 1;
+	else if (__tmp > 65535)
+	{
+		//	__ticks = requested delay in 1/10 ms
+		__ticks = (uint16_t) (__ms * 10.0);
+ 24c:	80 e2       	ldi	r24, 0x20	; 32
+ 24e:	9e e4       	ldi	r25, 0x4E	; 78
+ 250:	05 c0       	rjmp	.+10     	; 0x25c <main+0x3e>
+ 252:	e0 e9       	ldi	r30, 0x90	; 144
+ 254:	f1 e0       	ldi	r31, 0x01	; 1
+ 256:	31 97       	sbiw	r30, 0x01	; 1
+ 258:	f1 f7       	brne	.-4      	; 0x256 <main+0x38>
+		while(__ticks)
+		{
+			// wait 1/10 ms
+			_delay_loop_2(((F_CPU) / 4e3) / 10);
+			__ticks --;
+ 25a:	01 97       	sbiw	r24, 0x01	; 1
+		__ticks = 1;
+	else if (__tmp > 65535)
+	{
+		//	__ticks = requested delay in 1/10 ms
+		__ticks = (uint16_t) (__ms * 10.0);
+		while(__ticks)
+ 25c:	00 97       	sbiw	r24, 0x00	; 0
+ 25e:	c9 f7       	brne	.-14     	; 0x252 <main+0x34>
+		_delay_ms(2000);
+		turnPiOff();
+ 260:	0e 94 c0 00 	call	0x180	; 0x180 <turnPiOff>
+    }
+ 264:	f1 cf       	rjmp	.-30     	; 0x248 <main+0x2a>
 
-000002ee <_exit>:
- 2ee:	f8 94       	cli
+00000266 <_exit>:
+ 266:	f8 94       	cli
 
-000002f0 <__stop_program>:
- 2f0:	ff cf       	rjmp	.-2      	; 0x2f0 <__stop_program>
+00000268 <__stop_program>:
+ 268:	ff cf       	rjmp	.-2      	; 0x268 <__stop_program>

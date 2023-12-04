@@ -45,6 +45,9 @@
 #define EIGHT_BIT (3<<UCSZ00)
 #define DATA_BIT   EIGHT_BIT
 
+//Define a pinout for controlling a transistor
+#define pinOut PB0
+
 /* A value passed to the transmit function for differentiating transmit modes in the Honeywell PM Sensor */
 enum transmitFlag {
 	READVALUE,
@@ -60,6 +63,18 @@ static uint8_t startMeasurementCommand[4] = {0x68, 0x01, 0x01, 0x96};
 static uint8_t stopMeasurementCommand[4] = {0x68, 0x01, 0x02, 0x95};
 static uint8_t stopAutosend[4] = {0x68, 0x01, 0x20, 0x77};
 static uint8_t enableAutosend[4] = {0x68, 0x01, 0x40, 0x57};
+	
+void initialisePinOut( void ) {
+	DDRB |= (1 << DDB0);
+}
+
+void turnPiOn( void ) {
+	PORTB |= (1 << PORTB0); // Set the pin to HIGH
+}
+
+void turnPiOff( void ) {
+	PORTB &= ~(1 << PORTB0); // Set the pin to LOW
+}
 
 	
 /* 
@@ -312,9 +327,10 @@ int main(void) {
 	i2c_init();
 	
 	DS1307Init(0x00, 0x00, 0x00);
+	initialisePinOut();
 	
     while (1) {
-		DS1307ReadToUart();
+		//DS1307ReadToUart();
 		
 		//USART_TransmitPollingHoneywell(STOPAUTOSEND);
 		//_delay_ms(5000); //Temporary
@@ -324,7 +340,9 @@ int main(void) {
 		//_delay_ms(10000); //Temporary
 		//USART_TransmitPollingHoneywell(STOPMEASUREMENT);
 		
-		
+		turnPiOn();
+		_delay_ms(2000);
+		turnPiOff();
     }
     
     return 0;
