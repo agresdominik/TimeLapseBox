@@ -1,10 +1,12 @@
-from picamera import PiCamera
-from datetime import datetime
-from time import sleep
+# Import libraries
 import os
-import subprocess
+from subprocess import check_output
+from datetime import datetime				# Only temporary, will be replaced
+from time import sleep
+
+# Import libraries for image processing
 import cv2
-import numpy as np
+from picamera import PiCamera
 
 class CaptureImagePi:
 	"""
@@ -43,7 +45,7 @@ class CaptureImagePi:
 			sleep(20)
 
 			# Attempt to ping Google's server with a timeout of 1 second
-			subprocess.check_output("ping -c 1 google.com", shell=True)
+			check_output("ping -c 1 google.com", shell=True)
 			return True
 		except:
 			return False
