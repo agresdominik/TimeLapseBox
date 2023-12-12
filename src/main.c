@@ -307,7 +307,7 @@ void DS1307ReadToUart ( void ) {
 	_delay_ms(1000);
 }
 
-void RaspberryPiWriteMessage ( unsigned char temperature, unsigned char luftdruck, unsigned char PM25
+void RaspberryPiWriteMessage ( unsigned char temperature, unsigned char luftdruck, unsigned char PM25,
 		unsigned char PM10, unsigned char timestamp ) {
 	
 	i2c_start_wait(RaspberryPi+I2C_WRITE);
@@ -315,7 +315,7 @@ void RaspberryPiWriteMessage ( unsigned char temperature, unsigned char luftdruc
 	i2c_write(temperature);
 	i2c_stop();
 		
-	USART_Transmit(temperature)
+	USART_Transmit(temperature);
 }
 
 void RaspberryPiReadMessage ( void ) {
@@ -330,7 +330,7 @@ void RaspberryPiReadMessage ( void ) {
 	i2c_stop();
 
 	// check if message is ok or nack
-	USART_Transmit(mesage)
+	USART_Transmit(mesage);
 	
 }
 
@@ -347,7 +347,7 @@ int main(void) {
 	
     while (1) {
 		RaspberryPiReadMessage();
-	_	delay_ms(1000); //Temporary
+		_delay_ms(1000); //Temporary
     }
     
     return 0;
