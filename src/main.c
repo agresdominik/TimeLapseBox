@@ -365,7 +365,7 @@ int main(void) {
 	DS1307Init(0x00, 0x00, 0x00);
 	
     while (1) {
-		RaspberryPiWriteMessage("Hello Woarld", "10", "10", "10", "10", "10");
+		RaspberryPiWriteMessage("Hello Woarld", "10", "10", "10", "10");
 		_delay_ms(1000); //Temporary
     }
     
