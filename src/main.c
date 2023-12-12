@@ -25,8 +25,8 @@
 
 //Defines Addresses for the RaspberryPi TWI Interface
 #define RaspberryPi 0x09
-#define RaspberryPiWriteValues 0x00
-#define RaspberryPiReadMessage 0x01
+#define RaspberryPiWriteAddress 0x00
+#define RaspberryPiReadAddress 0x01
 
 // USART Baud rate and Prescaler/Divider (See AtMega328P data sheet for more information)
 #define USART_BAUDRATE 9600
@@ -307,29 +307,30 @@ void DS1307ReadToUart ( void ) {
 	_delay_ms(1000);
 }
 
-void RaspberryPiReadMessages ( void ) {
-	//Placeholder
-	unsigned char mesage;
+void RaspberryPiWriteMessage ( unsigned char temperature, unsigned char luftdruck, unsigned char PM25
+		unsigned char PM10, unsigned char timestamp ) {
 	
-	//Read Second value and save it
 	i2c_start_wait(RaspberryPi+I2C_WRITE);
-	i2c_write(RaspberryPiReadMessage);
-	i2c_rep_start(RaspberryPi+I2C_READ);
-	second = i2c_readNak();
+	i2c_write(RaspberryPiWriteAddress);
+	i2c_write(temperature);
 	i2c_stop();
-	
+		
+	USART_Transmit(temperature)
 }
 
-void RaspberryPi ( void ) {
+void RaspberryPiReadMessage ( void ) {
 	//Placeholder
 	unsigned char mesage;
 	
 	//Read Second value and save it
 	i2c_start_wait(RaspberryPi+I2C_WRITE);
-	i2c_write(RaspberryPiReadMessage);
+	i2c_write(RaspberryPiReadAddress);
 	i2c_rep_start(RaspberryPi+I2C_READ);
-	second = i2c_readNak();
+	mesage = i2c_readAck();
 	i2c_stop();
+
+	// check if message is ok or nack
+	USART_Transmit(mesage)
 	
 }
 
@@ -345,7 +346,8 @@ int main(void) {
 	DS1307Init(0x00, 0x00, 0x00);
 	
     while (1) {
-		
+		RaspberryPiReadMessage();
+	_	delay_ms(1000); //Temporary
     }
     
     return 0;
