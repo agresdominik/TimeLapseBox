@@ -7,14 +7,14 @@ FILENAME = main
 #Target build folder
 BUILDDIR = ../build/
 #Port on witch the device is connected
-PORT = ...
+PORT = /dev/ttyUSB0
 #Baud rate for communication between programmer and this device
 BAUD = 115200
 #Compile Command using avr-gcc -Wall: show all warnings -Os: optimizer for size
 COMPILE = avr-gcc -Wall -Os -mmcu=$(DEVICE)
 
 #Execute path
-default: compile upload clean
+default: compile upload
 
 #Compile Command
 #1. Compiles the c file into a o file and saves it in the build folder
@@ -32,7 +32,7 @@ upload:
 	avrdude -v -p $(DEVICE) -c $(PROGRAMMER) -P $(PORT) -b $(BAUD) -U flash:w:$(BUILDDIR)$(FILENAME).hex:i
 
 #Removes the unneeded files
-clean:
-	rm $(FILENAME).o
-	rm $(FILENAME).elf
-	rm $(FILENAME).hex
+#clean:
+#	rm $(FILENAME).o
+#	rm $(FILENAME).elf
+#	rm $(FILENAME).hex

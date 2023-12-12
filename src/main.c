@@ -23,6 +23,11 @@
 #define DS1307Month 0x05			//Address for the Month on the DS1307
 #define DS1307Year 0x06				//Address for the Year on the DS1307
 
+//Defines Addresses for the RaspberryPi TWI Interface
+#define RaspberryPi 0x09
+#define RaspberryPiWriteValues 0x00
+#define RaspberryPiReadMessage 0x01
+
 // USART Baud rate and Prescaler/Divider (See AtMega328P data sheet for more information)
 #define USART_BAUDRATE 9600
 #define BAUD_PRESCALER (((F_CPU / (USART_BAUDRATE * 16UL))) - 1)
@@ -302,6 +307,31 @@ void DS1307ReadToUart ( void ) {
 	_delay_ms(1000);
 }
 
+void RaspberryPiReadMessages ( void ) {
+	//Placeholder
+	unsigned char mesage;
+	
+	//Read Second value and save it
+	i2c_start_wait(RaspberryPi+I2C_WRITE);
+	i2c_write(RaspberryPiReadMessage);
+	i2c_rep_start(RaspberryPi+I2C_READ);
+	second = i2c_readNak();
+	i2c_stop();
+	
+}
+
+void RaspberryPi ( void ) {
+	//Placeholder
+	unsigned char mesage;
+	
+	//Read Second value and save it
+	i2c_start_wait(RaspberryPi+I2C_WRITE);
+	i2c_write(RaspberryPiReadMessage);
+	i2c_rep_start(RaspberryPi+I2C_READ);
+	second = i2c_readNak();
+	i2c_stop();
+	
+}
 
 int main(void) {
 	
@@ -315,16 +345,6 @@ int main(void) {
 	DS1307Init(0x00, 0x00, 0x00);
 	
     while (1) {
-		DS1307ReadToUart();
-		
-		//USART_TransmitPollingHoneywell(STOPAUTOSEND);
-		//_delay_ms(5000); //Temporary
-		//USART_TransmitPollingHoneywell(STARTMEASUREMENT);
-		//_delay_ms(5000); //Temporary
-		//USART_TransmitPollingHoneywell(READVALUE);
-		//_delay_ms(10000); //Temporary
-		//USART_TransmitPollingHoneywell(STOPMEASUREMENT);
-		
 		
     }
     
