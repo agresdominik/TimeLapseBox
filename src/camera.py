@@ -27,7 +27,7 @@ class CaptureImagePi:
 
 	def __init__(self):
 		"""
-    	Constructor that initializes the "attempts" attribute to 0.
+    	Constructor that initializes the 'attempts' attribute to 0.
     	"""
 		self.attempts = 0
 
@@ -45,7 +45,7 @@ class CaptureImagePi:
 			sleep(20)
 
 			# Attempt to ping Google's server with a timeout of 1 second
-			check_output("ping -c 1 google.com", shell=True)
+			check_output('ping -c 1 google.com', shell=True)
 			return True
 		except:
 			return False
@@ -65,21 +65,25 @@ class CaptureImagePi:
 		camera = PiCamera()
 
 		# Set camera parameters
-		camera.resolution = (2592, 1944)	# max resolution
-		# camera.resolution = (2560, 1440)	# QHD
+		camera.resolution = (2592, 1944)    # max resolution
+		# camera.resolution = (2560, 1440)  # QHD
 		camera.framerate = 15
 		camera.rotation = 180
 
- 		# Start camera preview with a translucent overlay
-		camera.start_preview(alpha = 240)
-		sleep(3)
+		try:
+			# Start camera preview with a translucent overlay
+			camera.start_preview(alpha=240)
+			sleep(3)
 
-		# Capture the image and save it to the specified file path
-		camera.capture('/home/dennis/TimeLapseBox/bootImages/test.jpg')
-		camera.stop_preview()
-		camera.close()
+			# Capture the image and save it to the specified file path
+			camera.capture('/home/dennis/TimeLapseBox//bootData/test.jpg')
+			camera.stop_preview()
+			camera.close()
+		except Exception as e:
+			print(f'Error when capturing the image: {e}')
+			camera.close()
 
-		self.check_image('/home/dennis/TimeLapseBox/bootImages/test')
+		self.check_image('/home/dennis/TimeLapseBox/bootData/test')
 
 	def check_image(self, imgPath):
 		"""
@@ -108,35 +112,35 @@ class CaptureImagePi:
 
 		# Evaluate image quality based on sharpness and brightness
 		if sharpness >= threshold_sharpness and brightness >= threshold_brightness:
-			print("Image quality is OK")
-			print("   Sharpness: {}".format(sharpness))
-			print("   Brightness: {}".format(brightness))
+			print('Image quality is OK (57/20)')
+			print('   Sharpness: {}'.format(sharpness))
+			print('   Brightness: {}'.format(brightness))
 
 			# Add labels to the image
 			font = cv2.FONT_HERSHEY_SIMPLEX
-			image = cv2.putText(image, datetime.now().strftime("%d.%m.%Y %H:%M"), (20, image.shape[0] - 110), font, 1.5, (255,255,255), 5, cv2.LINE_AA)
+			image = cv2.putText(image, datetime.now().strftime('%d.%m.%Y %H:%M'), (20, image.shape[0] - 110), font, 1.5, (255,255,255), 5, cv2.LINE_AA)
 			image = cv2.putText(image, 'Helligkeit: ' + str(brightness), (20, image.shape[0] - 65), font, 1.5, (255,255,255), 5, cv2.LINE_AA)
 			image = cv2.putText(image, 'Bildschaerfe: ' + str(sharpness), (20, image.shape[0] - 20), font, 1.5, (255,255,255), 5, cv2.LINE_AA)
 
 			# Display and save the processed image
 			cv2.waitKey(0)
 			cv2.destroyAllWindows()
-			cv2.imwrite(imgPath + "-OpenSV.jpg", image)
+			cv2.imwrite(imgPath + '-OpenCV.jpg', image)
 
 		elif sharpness < threshold_sharpness and brightness < threshold_brightness:
-			print("Image sharpness and brightness are insufficient")
-			print("   Sharpness: {}".format(sharpness))
-			print("   Brightness: {}".format(brightness))
+			print('Image sharpness and brightness are insufficient (57/20)')
+			print('   Sharpness: {}'.format(sharpness))
+			print('   Brightness: {}'.format(brightness))
 			self.try_again()
 
 		elif sharpness < threshold_sharpness:
-			print("Image sharpness is insufficient")
-			print("   Sharpness: {}".format(sharpness))
+			print('Image sharpness is insufficient (57)')
+			print('   Sharpness: {}'.format(sharpness))
 			self.try_again()
 
 		else:
-			print("Image brightness is insufficient")
-			print("   Brightness: {}".format(brightness))
+			print('Image brightness is insufficient (20)')
+			print('   Brightness: {}'.format(brightness))
 			self.try_again()
 
 	def calculate_brightness(self, image):
@@ -170,12 +174,12 @@ class CaptureImagePi:
 		"""
 		self.attempts = self.attempts + 1
 		if self.attempts < 5:
-			print("Repeat image capture ...")
+			print('Repeat image capture ...')
 			print()
 			sleep(10)
 			self.capture_image()
 		else:
-			print("Five failed attempts, image capture is canceled")
+			print('Five failed attempts, image capture is canceled')
 
 	def shutdown_system(self):
 		"""
@@ -184,7 +188,7 @@ class CaptureImagePi:
         This method executes a system command to shut down the Raspberry Pi.
         Note: Ensure the script has sufficient permissions to execute shutdown commands.
         """
-		os.system("sudo shutdown -h now")
+		os.system('sudo shutdown -h now')
 
 captureImageClass = CaptureImagePi()
 captureImageClass.capture_image()
