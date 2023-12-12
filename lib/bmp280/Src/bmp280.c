@@ -19,12 +19,12 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-#include "bmp280.h"
+#include "../Header/bmp280.h"
 
 // --------------------------------------------------------
 // User configuration - modify these to suit your project
 //
-#include "i2cmaster.h" // i2c Fleury lib
+#include "../../twimaster/i2cmaster.h" // i2c Fleury lib
 
 // TODO: there can be two BMP280 sensors on the I2C bus, ids 0x76, 0x77.
 // Currently we support only one sensor for the sake of simplicity
