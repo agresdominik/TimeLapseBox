@@ -12,6 +12,9 @@
 #include <avr/interrupt.h>	                  // Manage interrupts
 #include <util/delay.h>		//Delay					TODO: Substitute with Timer
 #include "../lib/twimaster/twimaster.c"		        //RTC Clock				TODO: c file import works only?
+#include <stdlib.h>		//standard c lib
+#include <string.h>		//standard c lib for manipulating strings
+#include "../lib/bmp280/Src/bmp280.c"		//library for bmp280 temperature sensor
 
 //Defines Addresses for the ds1307 RTC TWI interface (See DS1307 data sheet for more information)
 #define DS1307 0xD0					//0x68 bit shifted to left one time
@@ -334,6 +337,22 @@ void RaspberryPiReadMessage ( void ) {
 	
 }
 
+void initB280() {
+	bmp280_init();
+}
+
+void mesaureTemperatureAndPressure() {
+	unsigned char temperature;
+	unsigned char pressure;
+	unsigned char altitude;
+	
+	bmp280_get_status();
+	bmp280_measure();
+	temperature = bmp280_gettemperature();
+	pressure = bmp280_getpressure();
+	altitude = 100*bmp280_getaltitude();
+}
+
 int main(void) {
 	
 	unsigned char ret;
@@ -346,7 +365,7 @@ int main(void) {
 	DS1307Init(0x00, 0x00, 0x00);
 	
     while (1) {
-		RaspberryPiReadMessage();
+		RaspberryPiWriteMessage("Hello Woarld", "10", "10", "10", "10", "10");
 		_delay_ms(1000); //Temporary
     }
     
