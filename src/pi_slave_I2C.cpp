@@ -3,6 +3,9 @@
 
 using namespace std;
 
+// g++ pi_slave_I2C.cpp -lpthread -lpigpio -o slaveInstance
+// sudo ./slaveInstance
+
 void runSlave();
 void closeSlave();
 int getControlBits(int, bool);
@@ -12,8 +15,8 @@ bsc_xfer_t xfer;                // Struct to control data flow
 
 int main(){
     // Chose one of those two lines (comment the other out):
-    runSlave();
-    //closeSlave();
+    //runSlave();
+    closeSlave();
 
     return 0;
 }
