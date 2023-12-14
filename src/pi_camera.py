@@ -19,8 +19,8 @@ class CaptureImagePi:
 	Methods:
     - internet_connected(): Checks if the device has an active internet connection.
     - capture_image(): Captures an image and saves it to a specified location.
-	- check_image(): Checks the quality of the given image and saves it with additional information based on the evaluation.
-	- calculate_brightness(): Calculates the average brightness of an image.
+	- check_image(imgPath): Checks the quality of the given image and saves it with additional information based on the evaluation.
+	- calculate_brightness(image): Calculates the average brightness of an image.
 	- try_again(): Retries the image capture process after a failed attempt.
 	- shutdown_system(): Initiates a system shutdown.
     """
@@ -190,6 +190,7 @@ class CaptureImagePi:
         """
 		os.system('sudo shutdown -h now')
 
+# Initializes an instance of the class 'CaptureImagePi'
 captureImageClass = CaptureImagePi()
 captureImageClass.capture_image()
 #captureImageClass.shutdown_system()
