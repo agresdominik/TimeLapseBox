@@ -22,7 +22,6 @@ class CaptureImagePi:
 	- check_image(imgPath): Checks the quality of the given image and saves it with additional information based on the evaluation.
 	- calculate_brightness(image): Calculates the average brightness of an image.
 	- try_again(): Retries the image capture process after a failed attempt.
-	- shutdown_system(): Initiates a system shutdown.
     """
 
 	def __init__(self):
@@ -181,16 +180,6 @@ class CaptureImagePi:
 		else:
 			print('Five failed attempts, image capture is canceled')
 
-	def shutdown_system(self):
-		"""
-        Initiates a system shutdown.
-
-        This method executes a system command to shut down the Raspberry Pi.
-        Note: Ensure the script has sufficient permissions to execute shutdown commands.
-        """
-		os.system('sudo shutdown -h now')
-
 # Initializes an instance of the class 'CaptureImagePi'
 captureImageClass = CaptureImagePi()
 captureImageClass.capture_image()
-#captureImageClass.shutdown_system()

@@ -15,4 +15,6 @@
 # Starts the pi_camera.py skript.
 sudo /usr/bin/python "/home/dennis/TimeLapseBox/TimeLapseBox/src/pi_camera.py"
 
+# Initiates a system shutdown after the routine has been completed.
+# sudo shutdown -h now
 exit 0
