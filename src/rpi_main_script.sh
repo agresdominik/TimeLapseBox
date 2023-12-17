@@ -8,7 +8,11 @@
 #
 # The "systemctl status rc-local.service" command shows any error messages or logs associated with its execution. 
 
-# Starts a script that calls the camera.py.
+# Starts a C++ file that sets up an I2C slave on the Raspberry Pi, allowing it to catch data via the I2C bus.
+# g++ /home/dennis/TimeLapseBox/TimeLapseBox/src/pi_slave_I2C.cpp -lpthread -lpigpio -o /tmp/slaveInstance
+# sudo ./tmp/slaveInstance
+
+# Starts the pi_camera.py skript.
 sudo /usr/bin/python "/home/dennis/TimeLapseBox/TimeLapseBox/src/pi_camera.py"
 
 exit 0
