@@ -25,11 +25,15 @@
 #define DS1307Date 0x04				//Address for the Date on the DS1307
 #define DS1307Month 0x05			//Address for the Month on the DS1307
 #define DS1307Year 0x06				//Address for the Year on the DS1307
+#define DS1307Control 0x07			//Address for the Control Register on the DS1307
 
 //Defines Addresses for the RaspberryPi TWI Interface
 #define RaspberryPi 0x09
 #define RaspberryPiWriteAddress 0x00
 #define RaspberryPiReadAddress 0x01
+
+//Defines the Pin used to controll the transistor.
+#define TRANSISTOR_PIN PORTB0 
 
 // USART Baud rate and Prescaler/Divider (See AtMega328P data sheet for more information)
 #define USART_BAUDRATE 9600
@@ -53,6 +57,9 @@
 #define EIGHT_BIT (3<<UCSZ00)
 #define DATA_BIT   EIGHT_BIT
 
+// USART Timeout Value
+#define TIMEOUT_VALUE 5
+
 /* A value passed to the transmit function for differentiating transmit modes in the Honeywell PM Sensor */
 enum transmitFlag {
 	READVALUE,
@@ -68,6 +75,10 @@ static uint8_t startMeasurementCommand[4] = {0x68, 0x01, 0x01, 0x96};
 static uint8_t stopMeasurementCommand[4] = {0x68, 0x01, 0x02, 0x95};
 static uint8_t stopAutosend[4] = {0x68, 0x01, 0x20, 0x77};
 static uint8_t enableAutosend[4] = {0x68, 0x01, 0x40, 0x57};
+
+/* These Values are used by the timer to check if timeout has happened and to end ever waiting funtions*/
+volatile uint8_t timeoutFlag = 0;
+volatile uint16_t counter = 0;
 
 	
 /* 
@@ -86,54 +97,63 @@ void initUSART( void ) {
 	UCSR0C = ASYNCHRONOUS | PARITY_MODE | STOP_BIT | DATA_BIT;
 }
 
-/*
-	Called at start of main in order to initialize the on board 8Bit Timer
-*/
-void initTimer( void ) {
-	cli();		//Disable Global Interrupts
-
-	//DDRA = 0xFF;
-
-	// TIMER INITIALIZATION - setup timer and initialize them
-	// timer1 - 16bit - initialize by setting the "Clear Timer on Compare (CTC)" mode
-	// In CTC mode the counter is cleared to zero automatically when the counter value (TCNT1) matches the OCR1A register.
-	//PRR0	|= (0 << PRTIM1); 	//make sure, that timer1 gets power - write a logical one means shut down timer module
-	// TCCR1A-B = Timer/Counter Control Register A and B - clear register and set to normal mode
-	TCCR1A	= 0;     		// set entire TCCR1A register to 0
-	TCCR1B	= 0;     		// same for TCCR1B
-
-	// target timer period is 1ms (0.0001s) - so the prescaler should be set to 64 - means each 64 clocks the timer counter increase by 1.
-	// To match a 1ms period a maximum count of 250 should be set. Calc.: 16.000.000 / 64 => 250.000 / 250 => 1000 (clocks each second).
-	// With the calculation it gets clear, why a 8bit timer is also working. His max count is 256 and the max count of timer1 is 65.536 
-	OCR1A	= 250;		// OCR2A defines the top value for the counter - set compare match register to desired timer count
-	// turn on CTC mode - see table 17-2 Page 145 in datasheet
-	// If a period control is need the CTC mode is better as normal mode, because an automatically timer reload happens after each match
-	// and the match value has to be set once. For special functions the timer logic level output could be toggle. See 17.9.2 (Table 17-3), Page 146, ds. 
-	TCCR1B	|= (1 << WGM12); //set CTC mode - for OCR register (mode 4 in datasheet)
-	TCCR1B	|= (1 << CS11) | (1 << CS10); // Set CS10 and CS11 bits for 64 prescaler (Table 17-6, p.157)
-	// enable timer compare interrupt - because all timer interrupts can be individually masked with the "Timer Interrupt Mask Register" (TIMSKn)
-	TIMSK1 |= (1 << OCIE1A); // If enabled (OCIEnx = 1 | n=1 for timer 1 | x=A for compare vector A), the Output Compare Flag generates an Output Compare interrupt. (17.7, p.141, ds)
- 
-	sei();          	// enable global interrupts
-}
-
-// Interrupt service routine 
+// Overflow service routine 
 // handles the match for timer1 - 16bit - Clear Timer on Compare (CTC) mode
 // timer period = 1ms
-ISR(TIMER1_COMPA_vect){ // (keep the code inside as less as possible - each inside jump stops the main routine)
-	// if a match is detected the flag is set
-	//flag_timer1 = 1; // set it on - in main() the var would be set off
-	// Example 3: PORTA ^= (1 << PA1);			// toggling port pin
+ISR(TIMER1_OVF_vect){
+	    // Increment the counter
+    counter++;
+
+    // Check if the counter has reached the timeout value
+    if (counter >= TIMEOUT_VALUE) {
+        // Set the timeout flag
+        timeoutFlag = 1;
+
+        // Reset the counter
+        counter = 0;
+    }
+}
+
+// ISR for external interrupt
+ISR(INT0_vect) {
+    // Increment the counter every second
+    counter++;
+
+    // If one hour has passed (3600 seconds)
+    if (counter >= 3600) {
+        // Reset the counter
+        counter = 0;
+
+        // Code To Execute Every Hour:
+
+    }
 }
 
 /* 
 	Function which waits for the buffer to be emptied.
 	Called between transmits and receives.
-	TODO: Implement Timer witch breaks the function on timeout / if too much time passes.
+	A Timer is started when the function is called and is stopped when the buffer is empty.
+	If this timer overflows, the funtion will break out of the wait loop and handle the error.
  */
 void USART_WaitUntilReady( void ) {
+	//Set timeout flag to 0
+	timeoutFlag = 0;
+
+	// Start the timer
+    TCNT1 = 0; // Reset timer count
+    TCCR1B |= (1 << CS12); // Start timer with prescaler = 256
+
 	/* Wait for empty transmit buffer */
-	while ( !( UCSR0A & (1<<UDRE0)) );
+	while ( !( UCSR0A & (1<<UDRE0)) ) {
+		// Check if the timeout flag has been set, this is set once the timer overflows for the 5th time (5 Seconds)
+		if (timeoutFlag == 1) {
+			// Break out of the loop
+			break;
+		}
+	}
+
+	// Stop the timer
+    TCCR1B &= ~(1 << CS12);
 }
 
 /* Function used for transmitting singular bytes of Data via the TX */
@@ -268,8 +288,12 @@ void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour)
 		i2c_write(DS1307Hour);
 		i2c_write(hour);
 		i2c_stop();
-		
-		//... are days ... important?
+
+		//Set the DS1307 Control Register to output 1Hz on the SQW/OUT Pin
+		i2c_start_wait(DS1307+I2C_WRITE);
+		i2c_write(DS1307Control);
+		i2c_write(0x10);
+		i2c_stop();
 	}
 }
 
@@ -353,20 +377,63 @@ void mesaureTemperatureAndPressure() {
 	altitude = 100*bmp280_getaltitude();
 }
 
+/*
+	Function witch turns on the transistor.
+*/
+void turnOnTransistor() {
+	PORTB |= (1 << TRANSISTOR_PIN);
+}
+
+/*
+	Function witch turns off the transistor.
+*/
+void turnOffTransistor() {
+	PORTB &= ~(1 << TRANSISTOR_PIN);
+}
+
+/* 
+	This Function configures the ATMega328P to trigger an interrupt on the rising edge of the INT0(PD2) pin.
+	It Also enables global interrupts for the DS1307 RTC Clock to wake itself up and for the onboard timer.
+	Also different Init functions are called.
+*/
+void setup() {
+    // Configure INT0 (pin PD2) to trigger an interrupt on the rising edge
+    EICRA |= (1 << ISC01) | (1 << ISC00);
+    // Enable INT0
+    EIMSK |= (1 << INT0);
+
+	// Set the transistor pin as output
+    DDRB |= (1 << TRANSISTOR_PIN);
+
+    // Enable global interrupts
+    sei();
+
+	initUSART();
+	i2c_init();
+	DS1307Init(0x00, 0x00, 0x00);
+}
+
+void enterSleep() {
+    // Set sleep mode
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+
+    // Enable sleep mode
+    sleep_enable();
+
+    // Go to sleep
+    sleep_cpu();
+
+    // Wake up here
+    // Disable sleep mode
+    sleep_disable();
+}
+
 int main(void) {
 	
-	unsigned char ret;
-	
-	initUSART();
-	_delay_ms(1000); //Temporary
-	//initTimer();
-	i2c_init();
-	
-	DS1307Init(0x00, 0x00, 0x00);
-	
+	setup();
+
     while (1) {
-		RaspberryPiWriteMessage("Hello Woarld", "10", "10", "10", "10");
-		_delay_ms(1000); //Temporary
+		enterSleep();
     }
     
     return 0;
