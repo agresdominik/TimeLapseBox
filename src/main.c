@@ -16,7 +16,8 @@
 #include <string.h>		//standard c lib for manipulating strings
 #include "../lib/bmp280/Src/bmp280.c"		//library for bmp280 temperature sensor
 
-//Defines Addresses for the ds1307 RTC TWI interface (See DS1307 data sheet for more information)
+//DS1307 RTC Clock defines:
+//Defines Addresses for the DS1307 RTC TWI interface (See DS1307 data sheet for more information)
 #define DS1307 0xD0					//0x68 bit shifted to left one time
 #define DS1307Second 0x00			//Address for the seconds on the DS1307
 #define DS1307Minute 0x01			//Address for the minutes on the DS1307
@@ -27,14 +28,17 @@
 #define DS1307Year 0x06				//Address for the Year on the DS1307
 #define DS1307Control 0x07			//Address for the Control Register on the DS1307
 
+//RaspberryPi TWI Interface defines:
 //Defines Addresses for the RaspberryPi TWI Interface
 #define RaspberryPi 0x09
 #define RaspberryPiWriteAddress 0x00
 #define RaspberryPiReadAddress 0x01
 
+//Transistor defines for RaspberryPi:
 //Defines the Pin used to controll the transistor.
 #define TRANSISTOR_PIN PORTB0 
 
+// USART defines:
 // USART Baud rate and Prescaler/Divider (See AtMega328P data sheet for more information)
 #define USART_BAUDRATE 9600
 #define BAUD_PRESCALER (((F_CPU / (USART_BAUDRATE * 16UL))) - 1)
@@ -60,7 +64,7 @@
 // USART Timeout Value
 #define TIMEOUT_VALUE 5
 
-/* A value passed to the transmit function for differentiating transmit modes in the Honeywell PM Sensor */
+/* A enum value passed to the transmit function for differentiating transmit modes in the Honeywell PM Sensor */
 enum transmitFlag {
 	READVALUE,
 	STARTMEASUREMENT,
@@ -80,28 +84,26 @@ static uint8_t enableAutosend[4] = {0x68, 0x01, 0x40, 0x57};
 volatile uint8_t timeoutFlag = 0;
 volatile uint16_t counter = 0;
 
-	
 /* 
-	Called at start of main in order to initialize the USART I/O.
-	Values taken from ATMega Data sheet.
+	Called at setup in order to initialize the USART I/O.
+	Values taken from ATMega322p datasheet.
 */
 void initUSART( void ) {
-	/* Set baud rate */
+	// Set baud rate
 	UBRR0H = (unsigned char) BAUD_PRESCALER >> 8;
 	UBRR0L = (unsigned char) BAUD_PRESCALER;
 	
-	/* Enable receiver and transmitter */
+	// Enable receiver and transmitter
 	UCSR0B = (1<<RXEN0) | (1<<TXEN0);
 	
-	/* Set frame format: Asynchronous, No Parity Bit, 2stop Bit, 8 Data Bit */
+	// Set frame format: Asynchronous, No Parity Bit, 2stop Bit, 8 Data Bit
 	UCSR0C = ASYNCHRONOUS | PARITY_MODE | STOP_BIT | DATA_BIT;
 }
 
 // Overflow service routine 
-// handles the match for timer1 - 16bit - Clear Timer on Compare (CTC) mode
-// timer period = 1ms
+// timer period = 1.04 Sec
 ISR(TIMER1_OVF_vect){
-	    // Increment the counter
+	// Increment the counter value
     counter++;
 
     // Check if the counter has reached the timeout value
@@ -114,7 +116,7 @@ ISR(TIMER1_OVF_vect){
     }
 }
 
-// ISR for external interrupt
+// ISR for external interrupt by DS1307 RTC Clock
 ISR(INT0_vect) {
     // Increment the counter every second
     counter++;
@@ -131,7 +133,7 @@ ISR(INT0_vect) {
 
 /* 
 	Function which waits for the buffer to be emptied.
-	Called between transmits and receives.
+	Called between transmits and receives when using USART Interface.
 	A Timer is started when the function is called and is stopped when the buffer is empty.
 	If this timer overflows, the funtion will break out of the wait loop and handle the error.
  */
@@ -143,15 +145,15 @@ void USART_WaitUntilReady( void ) {
     TCNT1 = 0; // Reset timer count
     TCCR1B |= (1 << CS12); // Start timer with prescaler = 256
 
-	/* Wait for empty transmit buffer */
+	// Wait for empty transmit buffer
 	while ( !( UCSR0A & (1<<UDRE0)) ) {
 		// Check if the timeout flag has been set, this is set once the timer overflows for the 5th time (5 Seconds)
 		if (timeoutFlag == 1) {
 			// Break out of the loop
 			break;
+			//TODO: Error Handling
 		}
 	}
-
 	// Stop the timer
     TCCR1B &= ~(1 << CS12);
 }
@@ -266,8 +268,8 @@ void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour)
 	
 	check = i2c_start(DS1307+I2C_WRITE);
 	if ( check ) {
-		/* Failed to issue start condition, Error message here */
 		i2c_stop();
+		/* Failed to issue start condition, Error message here */
 	} else {
 		i2c_stop();
 		
@@ -361,10 +363,16 @@ void RaspberryPiReadMessage ( void ) {
 	
 }
 
+/*
+	Function witch initializes the BMP280 Temperature Sensor.
+*/
 void initB280() {
 	bmp280_init();
 }
 
+/*
+	Function witch measures the temperature and pressure and saves them in variables.
+*/
 void mesaureTemperatureAndPressure() {
 	unsigned char temperature;
 	unsigned char pressure;
