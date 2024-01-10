@@ -22,6 +22,7 @@ class CaptureImagePi:
 	- check_image(imgPath): Checks the quality of the given image and saves it with additional information based on the evaluation.
 	- calculate_brightness(image): Calculates the average brightness of an image.
 	- try_again(): Retries the image capture process after a failed attempt.
+	- processing_data(image, brightness, sharpness): Add annotations to brightness and sharpness information to an image.
     """
 
 	def __init__(self):
@@ -108,6 +109,7 @@ class CaptureImagePi:
 		# Set experimental threshold values
 		threshold_sharpness = 57
 		threshold_brightness = 20
+		print()
 
 		# Evaluate image quality based on sharpness and brightness
 		if sharpness >= threshold_sharpness and brightness >= threshold_brightness:
@@ -115,11 +117,25 @@ class CaptureImagePi:
 			print('   Sharpness: {}'.format(sharpness))
 			print('   Brightness: {}'.format(brightness))
 
+			# Read the sensor values from the external environment through the use of environment variables (os.environ), 
+			# followed by the removal of these values using the pop() method. If value not found replaced by default placeholder.
+			datetime = os.environ.pop('DATETIME', '-')
+			temperature = os.environ.pop('TEMPERATURE', '-')
+			humidity = os.environ.pop('HUMIDITY', '-')
+
 			# Add labels to the image
-			font = cv2.FONT_HERSHEY_SIMPLEX
-			image = cv2.putText(image, datetime.now().strftime('%d.%m.%Y %H:%M'), (20, image.shape[0] - 110), font, 1.5, (255,255,255), 5, cv2.LINE_AA)
-			image = cv2.putText(image, 'Helligkeit: ' + str(brightness), (20, image.shape[0] - 65), font, 1.5, (255,255,255), 5, cv2.LINE_AA)
-			image = cv2.putText(image, 'Bildschaerfe: ' + str(sharpness), (20, image.shape[0] - 20), font, 1.5, (255,255,255), 5, cv2.LINE_AA)
+			# image = cv2.putText(image, #VALUE#, (20, image.shape[0] - #HIGHT +45#), font, 1.5, (255,255,255), 2, cv2.LINE_AA)
+			font = cv2.FONT_HERSHEY_DUPLEX
+			font_size = 2
+			image = cv2.putText(image, datetime, (20, image.shape[0] - 270), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, 'Temperature: ' + temperature + ' Grad Celsius', (20, image.shape[0] - 220), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, 'Humidity: ' + humidity + '%', (20, image.shape[0] - 170), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, '-Bla-', (20, image.shape[0] - 120), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, '-Bla-', (20, image.shape[0] - 70), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, '-Bla-', (20, image.shape[0] - 20), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+
+			# Print some processing data
+			self.processing_data(image, brightness, sharpness)
 
 			# Display and save the processed image
 			cv2.waitKey(0)
@@ -179,6 +195,42 @@ class CaptureImagePi:
 			self.capture_image()
 		else:
 			print('Five failed attempts, image capture is canceled')
+
+	def processing_data(self, image, brightness, sharpness):
+		"""
+		Add annotations to brightness and sharpness information to an image.
+
+		This method takes an image and two numerical values representing brightness and sharpness.
+		It then annotates the input image with text displaying the brightness and sharpness values.
+
+		Parameters:
+		- image (numpy.ndarray): The input image to be processed.
+		- brightness (float): The brightness value to be displayed on the image.
+		- sharpness (float): The sharpness value to be displayed on the image.
+		"""
+		font = cv2.FONT_HERSHEY_DUPLEX
+		font_size = 2
+
+		# Compare brightness and sharpness values for consistent annotation
+		y = max(str(brightness), str(sharpness))
+
+		# Brightness text
+		brightness_text = 'Helligkeit: '
+		text_width_b, text_height_b = cv2.getTextSize(brightness_text + y, font, 1.5, font_size)[0]
+		brightness_text += str(brightness)
+
+		brightness_y = image.shape[1] - (text_width_b + 10)
+		brightness_x = image.shape[0] - 70
+		image = cv2.putText(image, brightness_text, (brightness_y, brightness_x), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+
+		# Sharpness text
+		sharpness_text = 'Bildschaerfe: '
+		text_width_s, text_height_s = cv2.getTextSize(sharpness_text  + y, font, 1.5, font_size)[0]
+		sharpness_text += str(sharpness)
+				
+		sharpness_y = image.shape[1] - (text_width_s + 10)
+		sharpness_x = image.shape[0] - 20
+		image = cv2.putText(image, sharpness_text, (sharpness_y, sharpness_x), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
 # Initializes an instance of the class 'CaptureImagePi'
 captureImageClass = CaptureImagePi()
