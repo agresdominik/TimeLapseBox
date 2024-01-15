@@ -19,6 +19,7 @@
 #include "ds1307.h"										//header file for ds1307
 #include "bmp280.h"										//header file for bmp280
 #include "raspberryPi.h"								//header file for raspberryPi
+#include "honeywell.h"									//header file for honeywell PM Sensor
 
 /*
 //DS1307 RTC Clock defines:
@@ -31,9 +32,8 @@
 #define DS1307Date 0x04				//Address for the Date on the DS1307
 #define DS1307Month 0x05			//Address for the Month on the DS1307
 #define DS1307Year 0x06				//Address for the Year on the DS1307
-#define DS1307Control 0x07			//Address for the Control Register on the DS1307 */
+#define DS1307Control 0x07			//Address for the Control Register on the DS1307
 
-/*
 //RaspberryPi TWI Interface defines:
 //Defines Addresses for the RaspberryPi TWI Interface
 #define RaspberryPi 0x09
@@ -44,6 +44,10 @@
 //Defines the Pin used to controll the transistor.
 #define TRANSISTOR_PIN PORTB0 
 
+// USART Timeout Value
+#define TIMEOUT_VALUE 5
+
+/*
 // USART defines:
 // USART Baud rate and Prescaler/Divider (See AtMega328P data sheet for more information)
 #define USART_BAUDRATE 9600
@@ -67,10 +71,7 @@
 #define EIGHT_BIT (3<<UCSZ00)
 #define DATA_BIT   EIGHT_BIT
 
-// USART Timeout Value
-#define TIMEOUT_VALUE 5
-
-/* A enum value passed to the transmit function for differentiating transmit modes in the Honeywell PM Sensor */
+/* A enum value passed to the transmit function for differentiating transmit modes in the Honeywell PM Sensor 
 enum transmitFlag {
 	READVALUE,
 	STARTMEASUREMENT,
@@ -79,32 +80,18 @@ enum transmitFlag {
 	ENABLEAUTOSEND
 };
 
-/* Predeclared Command Values for the Honeywell PM Sensor (See Honeywell data sheet for more information) */
+/* Predeclared Command Values for the Honeywell PM Sensor (See Honeywell data sheet for more information) 
 static uint8_t readCommand[4] = {0x68, 0x01, 0x04, 0x93};
 static uint8_t startMeasurementCommand[4] = {0x68, 0x01, 0x01, 0x96};
 static uint8_t stopMeasurementCommand[4] = {0x68, 0x01, 0x02, 0x95};
 static uint8_t stopAutosend[4] = {0x68, 0x01, 0x20, 0x77};
 static uint8_t enableAutosend[4] = {0x68, 0x01, 0x40, 0x57};
+*/
 
 /* These Values are used by the timer to check if timeout has happened and to end ever waiting funtions*/
 volatile uint8_t timeoutFlag = 0;
 volatile uint16_t counter = 0;
-
-/* 
-	Called at setup in order to initialize the USART I/O.
-	Values taken from ATMega322p datasheet.
-*/
-void initUSART( void ) {
-	// Set baud rate
-	UBRR0H = (unsigned char) BAUD_PRESCALER >> 8;
-	UBRR0L = (unsigned char) BAUD_PRESCALER;
-	
-	// Enable receiver and transmitter
-	UCSR0B = (1<<RXEN0) | (1<<TXEN0);
-	
-	// Set frame format: Asynchronous, No Parity Bit, 2stop Bit, 8 Data Bit
-	UCSR0C = ASYNCHRONOUS | PARITY_MODE | STOP_BIT | DATA_BIT;
-}
+volatile uint16_t externalClockCounter = 0;
 
 // Overflow service routine 
 // timer period = 1.04 Sec
@@ -125,12 +112,12 @@ ISR(TIMER1_OVF_vect){
 // ISR for external interrupt by DS1307 RTC Clock
 ISR(INT0_vect) {
     // Increment the counter every second
-    counter++;
+    externalClockCounter++;
 
     // If one hour has passed (3600 seconds)
-    if (counter >= 3600) {
+    if (externalClockCounter >= 3600) {
         // Reset the counter
-        counter = 0;
+        externalClockCounter = 0;
 
         // Code To Execute Every Hour:
 
@@ -138,11 +125,25 @@ ISR(INT0_vect) {
 }
 
 /* 
+	Called at setup in order to initialize the USART I/O.
+	Values taken from ATMega322p datasheet.
+
+void initUSART( void ) {
+	// Set baud rate
+	UBRR0H = (unsigned char) BAUD_PRESCALER >> 8;
+	UBRR0L = (unsigned char) BAUD_PRESCALER;
+	
+	// Enable receiver and transmitter
+	UCSR0B = (1<<RXEN0) | (1<<TXEN0);
+	
+	// Set frame format: Asynchronous, No Parity Bit, 2stop Bit, 8 Data Bit
+	UCSR0C = ASYNCHRONOUS | PARITY_MODE | STOP_BIT | DATA_BIT;
+} 
 	Function which waits for the buffer to be emptied.
 	Called between transmits and receives when using USART Interface.
 	A Timer is started when the function is called and is stopped when the buffer is empty.
 	If this timer overflows, the funtion will break out of the wait loop and handle the error.
- */
+ 
 void USART_WaitUntilReady( void ) {
 	//Set timeout flag to 0
 	timeoutFlag = 0;
@@ -164,28 +165,28 @@ void USART_WaitUntilReady( void ) {
     TCCR1B &= ~(1 << CS12);
 }
 
-/* Function used for transmitting singular bytes of Data via the TX */
+/* Function used for transmitting singular bytes of Data via the TX 
 void USART_Transmit(uint8_t data) {
-	/* Wait for data to be received */
+	/* Wait for data to be received 
 	USART_WaitUntilReady();
-	/* Write in Registry */
+	/* Write in Registry 
 	UDR0 = data;
 }
 	
-/* Function used for reading the value received and written in the registry */
+/* Function used for reading the value received and written in the registry 
 unsigned char USARTReceive( void ) {
-	/* Wait for data to be received */
+	/* Wait for data to be received 
 	USART_WaitUntilReady();
-	/* Get and return received data from buffer */
+	/* Get and return received data from buffer 
 	return UDR0;
 }
 
-/* Function used for Transmitting entire command to the Honeywell PM Sensor */
+/* Function used for Transmitting entire command to the Honeywell PM Sensor 
 void USART_TransmitPollingHoneywell(transmitFlag) {
-	/* Wait for data to be received */
+	/* Wait for data to be received 
 	USART_WaitUntilReady();
 		
-	/* Check witch mode should be transmitted and upload the corresponding command bytes with the checksum */
+	/* Check witch mode should be transmitted and upload the corresponding command bytes with the checksum 
 	if(transmitFlag == READVALUE){
 		for(int i = 0; i < 4; i++) {
 			UDR0 = (uint8_t) readCommand[i];
@@ -232,7 +233,7 @@ void USART_TransmitPollingHoneywell(transmitFlag) {
 /* 
 	Function witch saves the 2 Byte Positive or Negative ACK in a variable and checks if it is valid.
 	Called Upon when the Honeywell sensor gets a command witch changes its behavior.
- */
+ 
 void USARTReceiveStatus( void ) {
 	uint8_t dataRecived[2];
 	for(int i=0;i<2;i++){
@@ -252,7 +253,7 @@ void USARTReceiveStatus( void ) {
 /* 
 	Function witch saves the 2 Byte Positive or Negative ACK in a variable and checks if it is valid.
 	Called Upon when the Honeywell sensor gets a command witch changes its behavior.
- */
+ 
 void USARTReceiveValues( void ) {
 	uint8_t dataRecived[8];
 	for(int i=0;i<8;i++){
@@ -302,7 +303,7 @@ void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour)
 		i2c_write(0x10);
 		i2c_stop();
 	}
-}*/
+}
 
 /*
 	Function called to read the RTC Values and (rn) transfer this data via UART
@@ -391,58 +392,69 @@ void mesaureTemperatureAndPressure() {
 } */
 
 /*
-	Function witch turns on the transistor.
+	Function witch turns on the transistor digital pinout.
 */
 void turnOnTransistor() {
 	PORTB |= (1 << TRANSISTOR_PIN);
 }
 
 /*
-	Function witch turns off the transistor.
+	Function witch turns off the transistor digital pinout.
 */
 void turnOffTransistor() {
 	PORTB &= ~(1 << TRANSISTOR_PIN);
 }
 
+/*
+	This function is used to put the device to sleep, and to wake it up once the device has been interrupted by the clock.
+	The Time is checked each time, if the time is appropriate then further functions are called.
+*/
 void enterSleep() {
-    // Set sleep mode
+    // Sets appropriate sleep mode.
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
-    // Enable sleep mode
+    // Enables the sleep mode.
     sleep_enable();
 
-    // Go to sleep
+    // Go to sleep.
     sleep_cpu();
 
-    // Wake up here
-    // Disable sleep mode
+    // Wake up here after interrupt.
+    // Disable sleep mode.
     sleep_disable();
+
+	//TODO: Check time.
 }
 
 /* 
 	This Function configures the ATMega328P to trigger an interrupt on the rising edge of the INT0(PD2) pin.
 	It Also enables global interrupts for the DS1307 RTC Clock to wake itself up and for the onboard timer.
-	Also different Init functions are called.
+	Also multiple init functions are called.
 */
 void setup() {
-    // Configure INT0 (pin PD2) to trigger an interrupt on the rising edge
+
+    // Configure INT0 (pin PD2) to trigger an interrupt on the rising edge.
     EICRA |= (1 << ISC01) | (1 << ISC00);
-    // Enable INT0
+    // Enable INT0.
     EIMSK |= (1 << INT0);
 
-	// Set the transistor pin as output
+	// Set the transistor pin as output.
     DDRB |= (1 << TRANSISTOR_PIN);
 
-    // Enable global interrupts
+    // Enable global interrupts.
     sei();
 
+	// Initialise the different devices.
 	initUSART();
 	i2c_init();
 	DS1307Init(0x00, 0x00, 0x00);
 }
 
+/*
+	In main the setup() method is called once and then a while loop starts witch sets the device into sleep mode.
+	In the sleep method the time is checked so that the device can enter the recording and transmiting mode.
+*/
 int main(void) {
-	
 	setup();
 
     while (1) {
