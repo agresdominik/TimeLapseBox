@@ -8,14 +8,19 @@
 #define __DELAY_BACKWARD_COMPATIBLE__
 #define F_CPU 16000000UL
 
-#include <avr/io.h>			                    // AVR Standard IO
-#include <avr/interrupt.h>	                  // Manage interrupts
-#include <util/delay.h>		//Delay					TODO: Substitute with Timer
-#include "../lib/twimaster/twimaster.c"		        //RTC Clock				TODO: c file import works only?
-#include <stdlib.h>		//standard c lib
-#include <string.h>		//standard c lib for manipulating strings
-#include "../lib/bmp280/Src/bmp280.c"		//library for bmp280 temperature sensor
+#include <avr/io.h>			                    		// AVR Standard IO
+#include <avr/interrupt.h>	                  			// Manage interrupts
 
+#include <util/delay.h>									//Delay	TODO: Substitute with Timer
+
+#include <stdlib.h>										//standard c lib
+#include <string.h>										//standard c lib for manipulating strings
+
+#include "ds1307.h"										//header file for ds1307
+#include "bmp280.h"										//header file for bmp280
+#include "raspberryPi.h"								//header file for raspberryPi
+
+/*
 //DS1307 RTC Clock defines:
 //Defines Addresses for the DS1307 RTC TWI interface (See DS1307 data sheet for more information)
 #define DS1307 0xD0					//0x68 bit shifted to left one time
@@ -26,13 +31,14 @@
 #define DS1307Date 0x04				//Address for the Date on the DS1307
 #define DS1307Month 0x05			//Address for the Month on the DS1307
 #define DS1307Year 0x06				//Address for the Year on the DS1307
-#define DS1307Control 0x07			//Address for the Control Register on the DS1307
+#define DS1307Control 0x07			//Address for the Control Register on the DS1307 */
 
+/*
 //RaspberryPi TWI Interface defines:
 //Defines Addresses for the RaspberryPi TWI Interface
 #define RaspberryPi 0x09
 #define RaspberryPiWriteAddress 0x00
-#define RaspberryPiReadAddress 0x01
+#define RaspberryPiReadAddress 0x01 */
 
 //Transistor defines for RaspberryPi:
 //Defines the Pin used to controll the transistor.
@@ -257,11 +263,10 @@ void USARTReceiveValues( void ) {
 	
 }
 
-/*
+/* Function Exported to a different c file.
 	Function called to initialize the DS1307 RTC Module.
 	A hexadecimal value for actual second, minute and hour should be passed and will be set as actual time on the RTC clock.
 	If no i2c device can be found, a error clause will trigger.
-*/
 void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour) {
 	
 	unsigned char check;
@@ -269,7 +274,7 @@ void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour)
 	check = i2c_start(DS1307+I2C_WRITE);
 	if ( check ) {
 		i2c_stop();
-		/* Failed to issue start condition, Error message here */
+		// Failed to issue start condition, Error message here
 	} else {
 		i2c_stop();
 		
@@ -297,11 +302,11 @@ void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour)
 		i2c_write(0x10);
 		i2c_stop();
 	}
-}
+}*/
 
 /*
 	Function called to read the RTC Values and (rn) transfer this data via UART
-*/
+
 void DS1307ReadToUart ( void ) {
 	//Placeholders
 	unsigned char second;
@@ -334,7 +339,7 @@ void DS1307ReadToUart ( void ) {
 	USART_Transmit(minute);
 	USART_Transmit(hour);
 	_delay_ms(1000);
-}
+} 
 
 void RaspberryPiWriteMessage ( unsigned char temperature, unsigned char luftdruck, unsigned char PM25,
 		unsigned char PM10, unsigned char timestamp ) {
@@ -365,14 +370,14 @@ void RaspberryPiReadMessage ( void ) {
 
 /*
 	Function witch initializes the BMP280 Temperature Sensor.
-*/
+
 void initB280() {
 	bmp280_init();
 }
 
 /*
 	Function witch measures the temperature and pressure and saves them in variables.
-*/
+
 void mesaureTemperatureAndPressure() {
 	unsigned char temperature;
 	unsigned char pressure;
@@ -383,7 +388,7 @@ void mesaureTemperatureAndPressure() {
 	temperature = bmp280_gettemperature();
 	pressure = bmp280_getpressure();
 	altitude = 100*bmp280_getaltitude();
-}
+} */
 
 /*
 	Function witch turns on the transistor.
@@ -397,6 +402,21 @@ void turnOnTransistor() {
 */
 void turnOffTransistor() {
 	PORTB &= ~(1 << TRANSISTOR_PIN);
+}
+
+void enterSleep() {
+    // Set sleep mode
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+
+    // Enable sleep mode
+    sleep_enable();
+
+    // Go to sleep
+    sleep_cpu();
+
+    // Wake up here
+    // Disable sleep mode
+    sleep_disable();
 }
 
 /* 
@@ -419,21 +439,6 @@ void setup() {
 	initUSART();
 	i2c_init();
 	DS1307Init(0x00, 0x00, 0x00);
-}
-
-void enterSleep() {
-    // Set sleep mode
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-
-    // Enable sleep mode
-    sleep_enable();
-
-    // Go to sleep
-    sleep_cpu();
-
-    // Wake up here
-    // Disable sleep mode
-    sleep_disable();
 }
 
 int main(void) {
