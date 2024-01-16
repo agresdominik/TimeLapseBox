@@ -458,7 +458,7 @@ int main(void) {
 	setup();
 
     while (1) {
-		enterSleep();
+		i2c_init();
     }
     
     return 0;
