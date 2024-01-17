@@ -451,7 +451,7 @@ void setup() {
 	// Initialise the different devices.
 	initUSART();
 	i2c_init();
-	DS1307Init(0x00, 0x00, 0x00);
+	//DS1307Init(0x00, 0x00, 0x00);
 }
 
 /*
@@ -462,7 +462,9 @@ int main(void) {
 	setup();
 
     while (1) {
-		i2c_init();
+		RaspberryPiWriteMessage(0x00, 0x00, 0x00, 0x00, 0x00);
+
+		_delay_ms(5000);
     }
     
     return 0;
