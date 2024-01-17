@@ -41,7 +41,7 @@
 //Defines Addresses for the RaspberryPi TWI Interface
 #define RaspberryPi 0x09
 #define RaspberryPiWriteAddress 0x00
-#define RaspberryPiReadAddress 0x01 */
+#define RaspberryPiReadAddress 0x01
 
 //Transistor defines for RaspberryPi:
 //Defines the Pin used to controll the transistor.
@@ -140,11 +140,12 @@ void initUSART( void ) {
 	// Set frame format: Asynchronous, No Parity Bit, 2stop Bit, 8 Data Bit
 	UCSR0C = ASYNCHRONOUS | PARITY_MODE | STOP_BIT | DATA_BIT;
 } 
+/*
 	Function which waits for the buffer to be emptied.
 	Called between transmits and receives when using USART Interface.
 	A Timer is started when the function is called and is stopped when the buffer is empty.
 	If this timer overflows, the funtion will break out of the wait loop and handle the error.
- 
+*/ 
 void USART_WaitUntilReady( void ) {
 	//Set timeout flag to 0
 	timeoutFlag = 0;
