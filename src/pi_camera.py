@@ -119,22 +119,25 @@ class CaptureImagePi:
 
 			# Read the sensor values from the external environment through the use of environment variables (os.environ), 
 			# followed by the removal of these values using the pop() method. If value not found replaced by default placeholder.
-			datetime = os.environ.pop('DATETIME', '-')
+			date_time = os.environ.pop('DATETIME', '-')
 			temperature = os.environ.pop('TEMPERATURE', '-')
 			humidity = os.environ.pop('HUMIDITY', '-')
+
+			if self.internet_connected() and date_time == '-':
+				date_time = datetime.now().strftime('%d.%m.%Y %H:%M')
 
 			# Add labels to the image
 			# image = cv2.putText(image, #VALUE#, (20, image.shape[0] - #HIGHT +45#), font, 1.5, (255,255,255), 2, cv2.LINE_AA)
 			font = cv2.FONT_HERSHEY_DUPLEX
 			font_size = 2
-			image = cv2.putText(image, datetime, (20, image.shape[0] - 270), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, date_time, (20, image.shape[0] - 270), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 			image = cv2.putText(image, 'Temperature: ' + temperature + ' Grad Celsius', (20, image.shape[0] - 220), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 			image = cv2.putText(image, 'Humidity: ' + humidity + '%', (20, image.shape[0] - 170), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 			image = cv2.putText(image, '-Bla-', (20, image.shape[0] - 120), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 			image = cv2.putText(image, '-Bla-', (20, image.shape[0] - 70), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 			image = cv2.putText(image, '-Bla-', (20, image.shape[0] - 20), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
-			if '-' in (datetime, temperature, humidity):
+			if '-' in (date_time, temperature, humidity):
 				image = cv2.putText(image, 'CONNECTION ERROR', (20, image.shape[0] - 350), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
 			# Print some processing data
