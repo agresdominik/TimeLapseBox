@@ -16,12 +16,15 @@
 #include <stdlib.h>										//standard c lib
 #include <string.h>										//standard c lib for manipulating strings
 
-#include "ds1307.h"										//header file for ds1307
-#include "bmp280.h"										//header file for bmp280
-#include "raspberryPi.h"								//header file for raspberryPi
-#include "honeywell.h"									//header file for honeywell PM Sensor
+#include "../lib/twimaster/twimaster.c"	
+#include "../lib/bmp280/Src/bmp280.c"					//library for bmp280 temperature sensor
 
-/*
+//#include "ds1307.h"										//header file for ds1307
+//#include "bmp280.h"										//header file for bmp280
+//#include "raspberryPi.h"								//header file for raspberryPi
+//#include "honeywell.h"									//header file for honeywell PM Sensor
+
+
 //DS1307 RTC Clock defines:
 //Defines Addresses for the DS1307 RTC TWI interface (See DS1307 data sheet for more information)
 #define DS1307 0xD0					//0x68 bit shifted to left one time
@@ -47,7 +50,6 @@
 // USART Timeout Value
 #define TIMEOUT_VALUE 5
 
-/*
 // USART defines:
 // USART Baud rate and Prescaler/Divider (See AtMega328P data sheet for more information)
 #define USART_BAUDRATE 9600
@@ -71,7 +73,7 @@
 #define EIGHT_BIT (3<<UCSZ00)
 #define DATA_BIT   EIGHT_BIT
 
-/* A enum value passed to the transmit function for differentiating transmit modes in the Honeywell PM Sensor 
+/* A enum value passed to the transmit function for differentiating transmit modes in the Honeywell PM Sensor */
 enum transmitFlag {
 	READVALUE,
 	STARTMEASUREMENT,
@@ -80,15 +82,14 @@ enum transmitFlag {
 	ENABLEAUTOSEND
 };
 
-/* Predeclared Command Values for the Honeywell PM Sensor (See Honeywell data sheet for more information) 
+/* Predeclared Command Values for the Honeywell PM Sensor (See Honeywell data sheet for more information) */
 static uint8_t readCommand[4] = {0x68, 0x01, 0x04, 0x93};
 static uint8_t startMeasurementCommand[4] = {0x68, 0x01, 0x01, 0x96};
 static uint8_t stopMeasurementCommand[4] = {0x68, 0x01, 0x02, 0x95};
 static uint8_t stopAutosend[4] = {0x68, 0x01, 0x20, 0x77};
 static uint8_t enableAutosend[4] = {0x68, 0x01, 0x40, 0x57};
-*/
 
-/* These Values are used by the timer to check if timeout has happened and to end ever waiting funtions*/
+/* These Values are used by the timer to check if timeout has happened and to end ever waiting funtions */
 volatile uint8_t timeoutFlag = 0;
 volatile uint16_t counter = 0;
 volatile uint16_t externalClockCounter = 0;
@@ -127,7 +128,7 @@ ISR(INT0_vect) {
 /* 
 	Called at setup in order to initialize the USART I/O.
 	Values taken from ATMega322p datasheet.
-
+*/
 void initUSART( void ) {
 	// Set baud rate
 	UBRR0H = (unsigned char) BAUD_PRESCALER >> 8;
@@ -165,28 +166,28 @@ void USART_WaitUntilReady( void ) {
     TCCR1B &= ~(1 << CS12);
 }
 
-/* Function used for transmitting singular bytes of Data via the TX 
+/* Function used for transmitting singular bytes of Data via the TX  */
 void USART_Transmit(uint8_t data) {
-	/* Wait for data to be received 
+	// Wait for data to be received 
 	USART_WaitUntilReady();
-	/* Write in Registry 
+	// Write in Registry 
 	UDR0 = data;
 }
 	
-/* Function used for reading the value received and written in the registry 
+/* Function used for reading the value received and written in the registry */
 unsigned char USARTReceive( void ) {
-	/* Wait for data to be received 
+	// Wait for data to be received 
 	USART_WaitUntilReady();
-	/* Get and return received data from buffer 
+	// Get and return received data from buffer 
 	return UDR0;
 }
 
-/* Function used for Transmitting entire command to the Honeywell PM Sensor 
+/* Function used for Transmitting entire command to the Honeywell PM Sensor */
 void USART_TransmitPollingHoneywell(transmitFlag) {
-	/* Wait for data to be received 
+	// Wait for data to be received 
 	USART_WaitUntilReady();
 		
-	/* Check witch mode should be transmitted and upload the corresponding command bytes with the checksum 
+	// Check witch mode should be transmitted and upload the corresponding command bytes with the checksum 
 	if(transmitFlag == READVALUE){
 		for(int i = 0; i < 4; i++) {
 			UDR0 = (uint8_t) readCommand[i];
@@ -233,7 +234,7 @@ void USART_TransmitPollingHoneywell(transmitFlag) {
 /* 
 	Function witch saves the 2 Byte Positive or Negative ACK in a variable and checks if it is valid.
 	Called Upon when the Honeywell sensor gets a command witch changes its behavior.
- 
+*/ 
 void USARTReceiveStatus( void ) {
 	uint8_t dataRecived[2];
 	for(int i=0;i<2;i++){
@@ -253,7 +254,7 @@ void USARTReceiveStatus( void ) {
 /* 
 	Function witch saves the 2 Byte Positive or Negative ACK in a variable and checks if it is valid.
 	Called Upon when the Honeywell sensor gets a command witch changes its behavior.
- 
+*/ 
 void USARTReceiveValues( void ) {
 	uint8_t dataRecived[8];
 	for(int i=0;i<8;i++){
@@ -268,6 +269,7 @@ void USARTReceiveValues( void ) {
 	Function called to initialize the DS1307 RTC Module.
 	A hexadecimal value for actual second, minute and hour should be passed and will be set as actual time on the RTC clock.
 	If no i2c device can be found, a error clause will trigger.
+*/
 void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour) {
 	
 	unsigned char check;
@@ -307,7 +309,7 @@ void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour)
 
 /*
 	Function called to read the RTC Values and (rn) transfer this data via UART
-
+*/
 void DS1307ReadToUart ( void ) {
 	//Placeholders
 	unsigned char second;
@@ -371,14 +373,14 @@ void RaspberryPiReadMessage ( void ) {
 
 /*
 	Function witch initializes the BMP280 Temperature Sensor.
-
+*/
 void initB280() {
 	bmp280_init();
 }
 
 /*
 	Function witch measures the temperature and pressure and saves them in variables.
-
+*/
 void mesaureTemperatureAndPressure() {
 	unsigned char temperature;
 	unsigned char pressure;
@@ -389,7 +391,7 @@ void mesaureTemperatureAndPressure() {
 	temperature = bmp280_gettemperature();
 	pressure = bmp280_getpressure();
 	altitude = 100*bmp280_getaltitude();
-} */
+}
 
 /*
 	Function witch turns on the transistor digital pinout.
