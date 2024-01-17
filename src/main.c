@@ -41,7 +41,7 @@
 //RaspberryPi TWI Interface defines:
 //Defines Addresses for the RaspberryPi TWI Interface
 #define RaspberryPi 0x09
-#define RaspberryPiWriteAddress 0x00
+#define RaspberryPiWriteAddress 0x09
 #define RaspberryPiReadAddress 0x01
 
 //Transistor defines for RaspberryPi:
@@ -346,15 +346,15 @@ void DS1307ReadToUart ( void ) {
 	_delay_ms(1000);
 } 
 
-void RaspberryPiWriteMessage ( unsigned char temperature, unsigned char luftdruck, unsigned char PM25,
+int16_t RaspberryPiWriteMessage ( unsigned char temperature, unsigned char luftdruck, unsigned char PM25,
 		unsigned char PM10, unsigned char timestamp ) {
 	
 	i2c_start_wait(RaspberryPi+I2C_WRITE);
 	i2c_write(RaspberryPiWriteAddress);
-	i2c_write(temperature);
+	int32_t value = i2c_write(temperature);
 	i2c_stop();
-		
-	USART_Transmit(temperature);
+
+	return value;
 }
 
 void RaspberryPiReadMessage ( void ) {
@@ -451,7 +451,7 @@ void setup() {
 	// Initialise the different devices.
 	initUSART();
 	i2c_init();
-	//DS1307Init(0x00, 0x00, 0x00);
+	DS1307Init(0x00, 0x00, 0x00);
 }
 
 /*
@@ -459,10 +459,11 @@ void setup() {
 	In the sleep method the time is checked so that the device can enter the recording and transmiting mode.
 */
 int main(void) {
-	setup();
-
+	//setup();
+	i2c_init();
+	initUSART();
     while (1) {
-		RaspberryPiWriteMessage(0x00, 0x00, 0x00, 0x00, 0x00);
+		USART_Transmit(RaspberryPiWriteMessage(0x15, 0x00, 0x00, 0x00, 0x00);)
 
 		_delay_ms(5000);
     }
