@@ -460,11 +460,11 @@ void setup() {
 */
 int main(void) {
 	//setup();
-	//i2c_init();
+	i2c_init();
 	initUSART();
     while (1) {
-		//USART_Transmit(RaspberryPiWriteMessage(0x15, 0x00, 0x00, 0x00, 0x00));
-		USART_Transmit(0x55);
+		USART_Transmit(RaspberryPiWriteMessage(0x15, 0x00, 0x00, 0x00, 0x00));
+		//USART_Transmit(0x55);
 		_delay_ms(5000);
     }
     
