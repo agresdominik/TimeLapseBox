@@ -1,16 +1,18 @@
 #include <pigpio.h>
 #include <iostream>
 #include <cctype> // tolower()
+#include <iomanip>
 
 using namespace std;
 
-// g++ pi_slave_I2C.cpp -lpthread -lpigpio -o slaveInstance
+// g++ piH_slave_I2C.cpp -lpthread -lpigpio -o slaveInstance
 // sudo ./slaveInstance
 
 void runSlave();
 void closeSlave();
 int getControlBits(int, bool);
 string toLowerCase(string);
+string hexToString(string);
 
 const int slaveAddress = 0x09;  // <-- The Pi does not have a fixed I2C slave address, therefore address of choice
 bsc_xfer_t xfer;                // Struct to control data flow
@@ -50,7 +52,7 @@ void runSlave() {
     
     if (true/*status >= 0*/) {
         // Successfully opened the I2C slave
-        cout << "\n" << " Opened slave\n" << "\n";
+        cout << "\n" << " Opened slave (Hex)\n" << "\n";
         xfer.rxCnt = 0;
 
         // Continuous loop to receive data
@@ -60,13 +62,14 @@ void runSlave() {
                 if(xfer.rxBuf[0] == '0')
                     cout << "\n" << "Transmission received via I2C bus: \n";
                 cout << "(" << xfer.rxBuf[0] << ") ";
-                cout << "Received " << xfer.rxCnt << " bytes: ";
+                cout << "Received " << xfer.rxCnt << " (Hex)  bytes: ";
 
                 string message = "";
                 for(int i = 1; i < xfer.rxCnt; i++)
                     message = message + xfer.rxBuf[i];
-                cout << message;
-                cout << "\n";
+
+                message = hexToString(message);
+                cout << message << "\n";
 
                 message = toLowerCase(message);
                 if(message == "ende" || message == "shutdown") {
@@ -74,6 +77,9 @@ void runSlave() {
                     system("sudo shutdown -h now");
                 }
             }
+            //if (xfer.rxCnt > 0){
+            //    cout << xfer.rxBuf;
+            //}
         }
     } else {
         cout << "Failed to open slave!\n";
@@ -135,5 +141,19 @@ string toLowerCase(string input) {
     for (char ch : input) {
         result += std::tolower(ch);
     }
+    return result;
+}
+
+string hexToString(string hex) {
+    string result;
+    istringstream hexStream(hex);
+
+    // Lese zwei Zeichen (ein Byte) gleichzeitig aus dem Hex-String
+    for (std::string byte; hexStream >> setw(2) >> byte; ) {
+        // Konvertiere das Hex-Byte in einen Dezimalwert und füge es dem Ergebnis hinzu
+        char chr = stoi(byte, nullptr, 16);
+        result += chr;
+    }
+
     return result;
 }

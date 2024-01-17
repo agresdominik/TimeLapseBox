@@ -4,13 +4,11 @@
 
 using namespace std;
 
-// g++ pi_slave_I2C.cpp -lpthread -lpigpio -o slaveInstance
+// g++ pi_close_slave.cpp -lpthread -lpigpio -o slaveInstance
 // sudo ./slaveInstance
 
-void runSlave();
 void closeSlave();
 int getControlBits(int, bool);
-string toLowerCase(string);
 
 const int slaveAddress = 0x09;  // <-- The Pi does not have a fixed I2C slave address, therefore address of choice
 bsc_xfer_t xfer;                // Struct to control data flow
@@ -31,53 +29,10 @@ int main() {
     // Also returns the pigpio version number if successfully executed.
     gpioInitialise();
 
-    runSlave();
-
     // There is currently no option to close the slave instance after the runtime, so it must be closed manually if necessary.
-    //closeSlave();
+    closeSlave();
 
     return 0;
-}
-
-void runSlave() {
-    // Close old device (if any)
-    xfer.control = getControlBits(slaveAddress, false); // To avoid conflicts when restarting
-    bscXfer(&xfer);
-
-    // Set I2C slave Address to 0x0A
-    xfer.control = getControlBits(slaveAddress, true);
-    //int status = bscXfer(&xfer); // Should now be visible in I2C-Scanners
-    
-    if (true/*status >= 0*/) {
-        // Successfully opened the I2C slave
-        cout << "\n" << " Opened slave\n" << "\n";
-        xfer.rxCnt = 0;
-
-        // Continuous loop to receive data
-        while(1) {
-            bscXfer(&xfer);
-            if(xfer.rxCnt > 0) {
-                if(xfer.rxBuf[0] == '0')
-                    cout << "\n" << "Transmission received via I2C bus: \n";
-                cout << "(" << xfer.rxBuf[0] << ") ";
-                cout << "Received " << xfer.rxCnt << " bytes: ";
-
-                string message = "";
-                for(int i = 1; i < xfer.rxCnt; i++)
-                    message = message + xfer.rxBuf[i];
-                cout << message;
-                cout << "\n";
-
-                message = toLowerCase(message);
-                if(message == "ende" || message == "shutdown") {
-                    closeSlave();
-                    system("sudo shutdown -h now");
-                }
-            }
-        }
-    } else {
-        cout << "Failed to open slave!\n";
-    }
 }
 
 void closeSlave() { 
@@ -128,12 +83,4 @@ int getControlBits(int address /* max 127 */, bool open) {
         flags = /*BK:*/ (1 << 7) | /*I2:*/ (0 << 2) | /*EN:*/ (0 << 0);
 
     return (address << 16 /*= to the start of significant bits*/) | flags;
-}
-
-string toLowerCase(string input) {
-    string result;
-    for (char ch : input) {
-        result += std::tolower(ch);
-    }
-    return result;
 }
