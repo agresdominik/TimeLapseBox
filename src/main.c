@@ -463,7 +463,7 @@ int main(void) {
 	i2c_init();
 	initUSART();
     while (1) {
-		USART_Transmit(RaspberryPiWriteMessage(0x15, 0x00, 0x00, 0x00, 0x00);)
+		USART_Transmit(RaspberryPiWriteMessage(0x15, 0x00, 0x00, 0x00, 0x00););
 
 		_delay_ms(5000);
     }
