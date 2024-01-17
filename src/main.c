@@ -348,6 +348,8 @@ void DS1307ReadToUart ( void ) {
 
 int16_t RaspberryPiWriteMessage ( unsigned char temperature, unsigned char luftdruck, unsigned char PM25,
 		unsigned char PM10, unsigned char timestamp ) {
+
+	USART_Transmit(temperature);
 	
 	i2c_start_wait(RaspberryPi+I2C_WRITE);
 	i2c_write(RaspberryPiWriteAddress);
@@ -463,6 +465,7 @@ int main(void) {
 	i2c_init();
 	initUSART();
     while (1) {
+		_delay_ms(20000);
 		USART_Transmit(RaspberryPiWriteMessage(0x15, 0x00, 0x00, 0x00, 0x00));
 		//USART_Transmit(0x55);
 		_delay_ms(5000);
