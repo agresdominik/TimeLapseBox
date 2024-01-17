@@ -8,6 +8,8 @@
 #define __DELAY_BACKWARD_COMPATIBLE__
 #define F_CPU 16000000UL
 
+#include "../lib/twimaster/twimaster.c"	
+
 #include <avr/io.h>			                    		// AVR Standard IO
 #include <avr/interrupt.h>	                  			// Manage interrupts
 
