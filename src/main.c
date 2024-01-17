@@ -10,6 +10,7 @@
 
 #include <avr/io.h>			                    		// AVR Standard IO
 #include <avr/interrupt.h>	                  			// Manage interrupts
+#include <avr/sleep.h>									// Manage sleep mode
 
 #include <util/delay.h>									//Delay	TODO: Substitute with Timer
 
