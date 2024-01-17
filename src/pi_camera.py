@@ -76,14 +76,14 @@ class CaptureImagePi:
 			sleep(3)
 
 			# Capture the image and save it to the specified file path
-			camera.capture('/home/dennis/TimeLapseBox//bootData/test.jpg')
+			camera.capture('/home/pi/TimeLapseBox/bootData/test.jpg')
 			camera.stop_preview()
 			camera.close()
 		except Exception as e:
 			print(f'Error when capturing the image: {e}')
 			camera.close()
 
-		self.check_image('/home/dennis/TimeLapseBox/bootData/test')
+		self.check_image('/home/pi/TimeLapseBox/bootData/test')
 
 	def check_image(self, imgPath):
 		"""
@@ -134,6 +134,9 @@ class CaptureImagePi:
 			image = cv2.putText(image, '-Bla-', (20, image.shape[0] - 70), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 			image = cv2.putText(image, '-Bla-', (20, image.shape[0] - 20), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
+			if '-' in (datetime, temperature, humidity):
+				image = cv2.putText(image, 'CONNECTION ERROR', (20, image.shape[0] - 350), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+
 			# Print some processing data
 			self.processing_data(image, brightness, sharpness)
 
@@ -157,6 +160,7 @@ class CaptureImagePi:
 			print('Image brightness is insufficient (20)')
 			print('   Brightness: {}'.format(brightness))
 			self.try_again()
+		print()
 
 	def calculate_brightness(self, image):
 		"""
