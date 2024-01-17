@@ -2,7 +2,10 @@
 # Script for copying images to a USB stick (part of the TimeLapseBox routine).
 
 # Execute if the USB stick is not recognized automatically.
-# sudo mount /dev/sda1 /mnt/usb
+if ! grep -qs '/mnt/usb' /proc/mounts; then
+    sudo mount /dev/sda1 /mnt/usb
+    echo "USB stick has been successfully mounted:      /mnt/usb"
+fi
 
 # Path to the target directory.
 target_path="/mnt/usb/Pictures"

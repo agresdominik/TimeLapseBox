@@ -16,8 +16,8 @@ sudo ./tmp/slaveInstance &
 sudo /usr/bin/python "/home/pi/TimeLapseBox/TimeLapseBox/src/pi_camera.py"
 
 # Checks whether a USB is connected, if so, the bash script for copying an image file to the USB stick is executed
-if grep -qs '/mnt/usb' /proc/mounts; then
-    sudo bash /home/pi/TimeLapseBox/TimeLapseBox/src/copy_to_usb.sh
+if lsblk | grep -q "sda"; then
+    sudo /usr/bin/bash /home/pi/TimeLapseBox/TimeLapseBox/src/rpi_copy_usb.sh
 else
     echo "USB stick is not connected. Please connect the USB stick and try again."
 fi
