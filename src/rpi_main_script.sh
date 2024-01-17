@@ -9,11 +9,18 @@
 # The "systemctl status rc-local.service" command shows any error messages or logs associated with its execution. 
 
 # Starts a C++ file that sets up an I2C slave on the Raspberry Pi, allowing it to catch data via the I2C bus.
-# g++ /home/dennis/TimeLapseBox/TimeLapseBox/src/pi_slave_I2C.cpp -lpthread -lpigpio -o /tmp/slaveInstance
-# sudo ./tmp/slaveInstance
+g++ /home/pi/TimeLapseBox/TimeLapseBox/src/pi_slave_I2C.cpp -lpthread -lpigpio -o /tmp/slaveInstance
+sudo ./tmp/slaveInstance &
 
 # Starts the pi_camera.py skript.
-sudo /usr/bin/python "/home/dennis/TimeLapseBox/TimeLapseBox/src/pi_camera.py"
+sudo /usr/bin/python "/home/pi/TimeLapseBox/TimeLapseBox/src/pi_camera.py"
+
+# Checks whether a USB is connected, if so, the bash script for copying an image file to the USB stick is executed
+if grep -qs '/mnt/usb' /proc/mounts; then
+    sudo bash /home/pi/TimeLapseBox/TimeLapseBox/src/copy_to_usb.sh
+else
+    echo "USB stick is not connected. Please connect the USB stick and try again."
+fi
 
 # Initiates a system shutdown after the routine has been completed.
 # sudo shutdown -h now
