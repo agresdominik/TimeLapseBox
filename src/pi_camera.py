@@ -121,7 +121,8 @@ class CaptureImagePi:
 			# followed by the removal of these values using the pop() method. If value not found replaced by default placeholder.
 			date_time = os.environ.pop('DATETIME', '-')
 			temperature = os.environ.pop('TEMPERATURE', '-')
-			humidity = os.environ.pop('HUMIDITY', '-')
+			pressure = os.environ.pop('PRESSURE', '-')
+			altitude = os.environ.pop('ALTITUDE', '-')
 
 			if self.internet_connected() and date_time == '-':
 				date_time = datetime.now().strftime('%d.%m.%Y %H:%M')
@@ -132,12 +133,10 @@ class CaptureImagePi:
 			font_size = 2
 			image = cv2.putText(image, date_time, (20, image.shape[0] - 270), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 			image = cv2.putText(image, 'Temperature: ' + temperature + ' Grad Celsius', (20, image.shape[0] - 220), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
-			image = cv2.putText(image, 'Humidity: ' + humidity + '%', (20, image.shape[0] - 170), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
-			image = cv2.putText(image, '-Bla-', (20, image.shape[0] - 120), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
-			image = cv2.putText(image, '-Bla-', (20, image.shape[0] - 70), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
-			image = cv2.putText(image, '-Bla-', (20, image.shape[0] - 20), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, 'Pressure: ' + pressure + 'Pascal', (20, image.shape[0] - 170), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, 'Altidude: ' + altitude, (20, image.shape[0] - 120), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
-			if '-' in (date_time, temperature, humidity):
+			if '-' in (date_time, temperature, pressure, altitude):
 				image = cv2.putText(image, 'CONNECTION ERROR', (20, image.shape[0] - 350), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
 			# Print some processing data
