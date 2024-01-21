@@ -1,12 +1,16 @@
 # Import libraries
-import os
+import sys
+from datetime import datetime
 from subprocess import check_output
-from datetime import datetime				# Only temporary, will be replaced
 from time import sleep
+
+# Import regular expressions
+import re
 
 # Import libraries for image processing
 import cv2
 from picamera import PiCamera
+
 
 class CaptureImagePi:
 	"""
@@ -76,14 +80,14 @@ class CaptureImagePi:
 			sleep(3)
 
 			# Capture the image and save it to the specified file path
-			camera.capture('/home/pi/TimeLapseBox/bootData/test.jpg')
+			camera.capture('/home/pi/TimeLapseBox/bootData/image.jpg')
 			camera.stop_preview()
 			camera.close()
 		except Exception as e:
 			print(f'Error when capturing the image: {e}')
 			camera.close()
 
-		self.check_image('/home/pi/TimeLapseBox/bootData/test')
+		self.check_image('/home/pi/TimeLapseBox/bootData/image')
 
 	def check_image(self, imgPath):
 		"""
@@ -101,46 +105,66 @@ class CaptureImagePi:
 
 		# Calculate sharpness
 		sharpness = cv2.Laplacian(image, cv2.CV_64F).var()
-		sharpness = round(sharpness, 3)
+		if not sharpness.is_integer():
+			sharpness = round(sharpness, 3)
 
 		# Calculate brightness using a helper method
 		brightness = self.calculate_brightness(image)
 
 		# Set experimental threshold values
-		threshold_sharpness = 57
+		threshold_sharpness = 35 #57
 		threshold_brightness = 20
 		print()
 
 		# Evaluate image quality based on sharpness and brightness
 		if sharpness >= threshold_sharpness and brightness >= threshold_brightness:
-			print('Image quality is OK (57/20)')
+			print(f'Image quality is OK ({threshold_sharpness}/{threshold_brightness})')
 			print('   Sharpness: {}'.format(sharpness))
 			print('   Brightness: {}'.format(brightness))
 
-			# Read the sensor values from the external environment through the use of environment variables (os.environ), 
-			# followed by the removal of these values using the pop() method. If value not found replaced by default placeholder.
-			date_time = os.environ.pop('DATETIME', '-')
-			temperature = os.environ.pop('TEMPERATURE', '-')
-			pressure = os.environ.pop('PRESSURE', '-')
-			altitude = os.environ.pop('ALTITUDE', '-')
+			date_time = '-'
+			temperature = '-'
+			pressure = '-'
+			altitude = '-'
 
+			# Read the sensor values from the external environment through the use of environment variables (os.environ), 
+			# If value not found replaced by default placeholder.
+			if len(sys.argv) > 1:
+				with open(sys.argv[1], 'r') as file:
+					content = file.read()
+
+					datetime_match = re.search(r'DATETIME=(.*)', content)
+					temperature_match = re.search(r'TEMPERATURE=(.*)', content)
+					pressure_match = re.search(r'PRESSURE=(.*)', content)
+					altitude_match = re.search(r'ALTITUDE=(.*)', content)
+
+					if datetime_match:
+						date_time = datetime_match.group(1)
+					if temperature_match:
+						temperature = temperature_match.group(1)
+					if pressure_match:
+						pressure = pressure_match.group(1)
+					if altitude_match:	
+						altitude = altitude_match.group(1)				
+
+			# Checks whether there is an Internet connection in order to have a second source for date_time in the event of a problem.
 			if self.internet_connected() and date_time == '-':
 				date_time = datetime.now().strftime('%d.%m.%Y %H:%M')
 
-			# Add labels to the image
-			# image = cv2.putText(image, #VALUE#, (20, image.shape[0] - #HIGHT +45#), font, 1.5, (255,255,255), 2, cv2.LINE_AA)
+			# Add labels to the image overlay
 			font = cv2.FONT_HERSHEY_DUPLEX
 			font_size = 2
-			image = cv2.putText(image, date_time, (20, image.shape[0] - 270), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
-			image = cv2.putText(image, 'Temperature: ' + temperature + ' Grad Celsius', (20, image.shape[0] - 220), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
-			image = cv2.putText(image, 'Pressure: ' + pressure + 'Pascal', (20, image.shape[0] - 170), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
-			image = cv2.putText(image, 'Altidude: ' + altitude, (20, image.shape[0] - 120), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, date_time, (20, image.shape[0] - 170), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, 'Temperature: ' + temperature + ' Grad Celsius', (20, image.shape[0] - 120), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, 'Pressure: ' + pressure + ' Pa', (20, image.shape[0] - 70), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, 'Altidude: ' + altitude + ' m', (20, image.shape[0] - 20), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
+			# Checks whether all values have a valid value.
 			if '-' in (date_time, temperature, pressure, altitude):
-				image = cv2.putText(image, 'CONNECTION ERROR', (20, image.shape[0] - 350), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+				image = cv2.putText(image, 'CONNECTION ERROR', (20, image.shape[0] - 250), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
 			# Print some processing data
-			self.processing_data(image, brightness, sharpness)
+			#self.processing_data(image, brightness, sharpness)
 
 			# Display and save the processed image
 			cv2.waitKey(0)
@@ -148,18 +172,18 @@ class CaptureImagePi:
 			cv2.imwrite(imgPath + '-OpenCV.jpg', image)
 
 		elif sharpness < threshold_sharpness and brightness < threshold_brightness:
-			print('Image sharpness and brightness are insufficient (57/20)')
+			print(f'Image sharpness and brightness are insufficient ({threshold_sharpness}/{threshold_brightness})')
 			print('   Sharpness: {}'.format(sharpness))
 			print('   Brightness: {}'.format(brightness))
 			self.try_again()
 
 		elif sharpness < threshold_sharpness:
-			print('Image sharpness is insufficient (57)')
+			print(f'Image sharpness is insufficient ({threshold_sharpness})')
 			print('   Sharpness: {}'.format(sharpness))
 			self.try_again()
 
 		else:
-			print('Image brightness is insufficient (20)')
+			print(f'Image brightness is insufficient ({threshold_brightness})')
 			print('   Brightness: {}'.format(brightness))
 			self.try_again()
 		print()
@@ -201,6 +225,7 @@ class CaptureImagePi:
 			self.capture_image()
 		else:
 			print('Five failed attempts, image capture is canceled')
+			exit(1)
 
 	def processing_data(self, image, brightness, sharpness):
 		"""
@@ -241,3 +266,4 @@ class CaptureImagePi:
 # Initializes an instance of the class 'CaptureImagePi'
 captureImageClass = CaptureImagePi()
 captureImageClass.capture_image()
+exit(0)
