@@ -106,7 +106,6 @@ class CaptureImagePi:
 		image = cv2.imread(imgPath + '.jpg', -1)
 
 		image = numpy.clip(image + self.brightness_adjustment, 0, 255)
-		cv2.imwrite(imgPath + '-' + str(self.brightness_adjustment) + '-OpenCV.jpg', image)
 
 		# Calculate sharpness
 		sharpness = cv2.Laplacian(image, cv2.CV_64F).var()
