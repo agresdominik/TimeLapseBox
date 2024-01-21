@@ -156,7 +156,7 @@ class CaptureImagePi:
 			font_size = 2
 			image = cv2.putText(image, date_time, (20, image.shape[0] - 170), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 			image = cv2.putText(image, 'Temperature: ' + temperature + ' Grad Celsius', (20, image.shape[0] - 120), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
-			image = cv2.putText(image, 'Pressure: ' + pressure + ' Pa', (20, image.shape[0] - 70), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, 'Pressure: ' + pressure + ' kPa', (20, image.shape[0] - 70), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 			image = cv2.putText(image, 'Altidude: ' + altitude + ' m', (20, image.shape[0] - 20), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
 			# Checks whether all values have a valid value.
