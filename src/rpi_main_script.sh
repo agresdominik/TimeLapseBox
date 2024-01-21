@@ -19,12 +19,10 @@ sudo /usr/bin/python /home/pi/TimeLapseBox/TimeLapseBox/src/uart_read.py "$file_
 pi_camera_exit=$?
 
 # Checks whether a USB is connected, if so, the bash script for copying an image file to the USB stick is executed
-if [ "$pi_camera_exit" -eq 0 ] && [ -f "$file_path" ]; then
-    if lsblk | grep -q "sda"; then
-        sudo /usr/bin/bash /home/pi/TimeLapseBox/TimeLapseBox/src/rpi_copy_usb.sh "$file_path"
-    else
-        echo "USB stick is not connected. Please connect the USB stick and try again."
-    fi
+if lsblk | grep -q "sda"; then
+    sudo /usr/bin/bash /home/pi/TimeLapseBox/TimeLapseBox/src/rpi_copy_usb.sh "$file_path" "$pi_camera_exit"
+else
+    echo "USB stick is not connected. Please connect the USB stick and try again."
 fi
 
 sudo rm -v "$file_path"
