@@ -46,7 +46,7 @@
 
 //Transistor defines for RaspberryPi:
 //Defines the Pin used to controll the transistor.
-#define TRANSISTOR_PIN PORTB0 
+#define TRANSISTOR_PIN PORTB0
 
 // USART Timeout Value
 #define TIMEOUT_VALUE 5
@@ -74,26 +74,50 @@
 #define EIGHT_BIT (3<<UCSZ00)
 #define DATA_BIT   EIGHT_BIT
 
-/* A enum value passed to the transmit function for differentiating transmit modes in the Honeywell PM Sensor */
+/*
+	Enum used to differenciate sucess from failure when trsnmitting data to server
+*/
+enum transmitMessage {
+	SUCCESSFULL,
+	FAILED
+};
+
+//DEPRICATED:
+/* A enum value passed to the transmit function for differentiating transmit modes in the Honeywell PM Sensor 
 enum transmitFlag {
 	READVALUE,
 	STARTMEASUREMENT,
 	STOPMEASUREMENT,
 	STOPAUTOSEND,
 	ENABLEAUTOSEND
-};
+}; */
 
-/* Predeclared Command Values for the Honeywell PM Sensor (See Honeywell data sheet for more information) */
+//DEPRICATED:
+/* Predeclared Command Values for the Honeywell PM Sensor (See Honeywell data sheet for more information)
 static uint8_t readCommand[4] = {0x68, 0x01, 0x04, 0x93};
 static uint8_t startMeasurementCommand[4] = {0x68, 0x01, 0x01, 0x96};
 static uint8_t stopMeasurementCommand[4] = {0x68, 0x01, 0x02, 0x95};
 static uint8_t stopAutosend[4] = {0x68, 0x01, 0x20, 0x77};
-static uint8_t enableAutosend[4] = {0x68, 0x01, 0x40, 0x57};
+static uint8_t enableAutosend[4] = {0x68, 0x01, 0x40, 0x57}; */
 
 /* These Values are used by the timer to check if timeout has happened and to end ever waiting funtions */
 volatile uint8_t timeoutFlag = 0;
 volatile uint16_t counter = 0;
 volatile uint16_t externalClockCounter = 0;
+
+/* These Values are used by the bmt to write data into and send later to the pi */
+volatile uint32_t temperature = 0x00;
+volatile uint32_t pressure = 0x00;
+volatile uint32_t altitude = 0x00;
+
+//Placeholders
+volatile uint8_t second = 0x00;
+volatile uint8_t minute = 0x00;
+volatile uint8_t hour = 0x00;
+volatile uint8_t date = 0x00;
+volatile uint8_t month = 0x00;
+volatile uint8_t year = 0x00;
+
 
 // Overflow service routine 
 // timer period = 1.04 Sec
@@ -116,13 +140,22 @@ ISR(INT0_vect) {
     // Increment the counter every second
     externalClockCounter++;
 
+	int result = 0;
+
     // If one hour has passed (3600 seconds)
     if (externalClockCounter >= 3600) {
         // Reset the counter
         externalClockCounter = 0;
 
         // Code To Execute Every Hour:
+		result = mainExecuteFunction();
 
+		if (result == 0) {
+			transmitMessage(SUCCESSFULL);
+		} else if (result == 1) { 
+			transmitMessage(FAILED);
+		}
+		
     }
 }
 
@@ -141,13 +174,15 @@ void initUSART( void ) {
 	// Set frame format: Asynchronous, No Parity Bit, 2stop Bit, 8 Data Bit
 	UCSR0C = ASYNCHRONOUS | PARITY_MODE | STOP_BIT | DATA_BIT;
 } 
+
 /*
 	Function which waits for the buffer to be emptied.
 	Called between transmits and receives when using USART Interface.
 	A Timer is started when the function is called and is stopped when the buffer is empty.
 	If this timer overflows, the funtion will break out of the wait loop and handle the error.
+	Returns a 1 or 0 value for failure or success.
 */ 
-void USART_WaitUntilReady( void ) {
+uint8_t USART_WaitUntilReady( void ) {
 	//Set timeout flag to 0
 	timeoutFlag = 0;
 
@@ -159,13 +194,13 @@ void USART_WaitUntilReady( void ) {
 	while ( !( UCSR0A & (1<<UDRE0)) ) {
 		// Check if the timeout flag has been set, this is set once the timer overflows for the 5th time (5 Seconds)
 		if (timeoutFlag == 1) {
-			// Break out of the loop
-			break;
-			//TODO: Error Handling
+			return 1;
 		}
 	}
 	// Stop the timer
     TCCR1B &= ~(1 << CS12);
+
+	return 0;
 }
 
 /* Function used for transmitting singular bytes of Data via the TX  */
@@ -184,7 +219,8 @@ unsigned char USARTReceive( void ) {
 	return UDR0;
 }
 
-/* Function used for Transmitting entire command to the Honeywell PM Sensor */
+//DEPRICATED:
+/* Function used for Transmitting entire command to the Honeywell PM Sensor
 void USART_TransmitPollingHoneywell(transmitFlag) {
 	// Wait for data to be received 
 	USART_WaitUntilReady();
@@ -231,39 +267,40 @@ void USART_TransmitPollingHoneywell(transmitFlag) {
 		//TODO: Here Call the USARTReceiveStatus() Function and check if a Pos. ACK was sent
 		
 	}
-}
+} */
 
 /* 
 	Function witch saves the 2 Byte Positive or Negative ACK in a variable and checks if it is valid.
-	Called Upon when the Honeywell sensor gets a command witch changes its behavior.
+	Called Upon when the Raspberry Pi is working to get command if evrything was sucessful.
 */ 
-void USARTReceiveStatus( void ) {
+uint8_t USARTReceiveStatus( void ) {
+	//Predifined ACK Values
+	volatile uint8_t yesMessage = (uint8_t) 0xA5;
+	volatile uint8_t noMessage = (uint8_t) 0x96;
+	volatile uint8_t emptyMessage = (uint8_t) 0xFE;
+
+	//Array for reading data
 	uint8_t dataRecived[2];
+
+	//Read the datat from UART registry
 	for(int i=0;i<2;i++){
 		dataRecived[i] = USARTReceive();
 	}
 
+	//Check Data and evaluate
 	if (dataRecived[1] == 0xA5 && dataRecived[2] == 0xA5) {
-		//Positive ACK
+		dataRecived[1] = 0x00;
+		dataRecived[2] = 0x00;
+		return 0;
 	} else if (dataRecived[1] == 0x96 && dataRecived[2] == 0x96){
-		//Negative ACK
+		dataRecived[1] = 0x00;
+		dataRecived[2] = 0x00;
+		return 1;
 	} else {
-		//Unknown Error, e.g. Cable Loose, interference...
+		//Do this while waiting for information
+		USART_Transmit(emptyMessage);
+		return 2;
 	}
-	
-}
-
-/* 
-	Function witch saves the 2 Byte Positive or Negative ACK in a variable and checks if it is valid.
-	Called Upon when the Honeywell sensor gets a command witch changes its behavior.
-*/ 
-void USARTReceiveValues( void ) {
-	uint8_t dataRecived[8];
-	for(int i=0;i<8;i++){
-		dataRecived[i] = USARTReceive();
-	}
-	
-	//TODO Evaluate Data and do something
 	
 }
 
@@ -272,51 +309,64 @@ void USARTReceiveValues( void ) {
 	A hexadecimal value for actual second, minute and hour should be passed and will be set as actual time on the RTC clock.
 	If no i2c device can be found, a error clause will trigger.
 */
-void DS1307Init (unsigned char second, unsigned char minute, unsigned char hour) {
-	
+void DS1307Init (unsigned char setSecond, unsigned char setMinute, unsigned char setHour, unsigned char setDate, unsigned char setMonth, unsigned char setYear) {
 	unsigned char check;
 	
 	check = i2c_start(DS1307+I2C_WRITE);
 	if ( check ) {
 		i2c_stop();
-		// Failed to issue start condition, Error message here
+		// ERROR HANDLING: TODO: Send nack message
 	} else {
 		i2c_stop();
 		
 		//Initializes the seconds to given value, IMPORTANT: the bit 7 (see data sheet) needs to be a 0 for the clock to run
 		i2c_start_wait(DS1307+I2C_WRITE);
 		i2c_write(DS1307Second);
-		i2c_write(second);
+		i2c_write(setSecond);
 		i2c_stop();
 	
 		//Initializes the Minutes to given value
 		i2c_start_wait(DS1307+I2C_WRITE);
 		i2c_write(DS1307Minute);
-		i2c_write(minute);
+		i2c_write(setMinute);
 		i2c_stop();
 	
 		//Initializes the Hour to given value
 		i2c_start_wait(DS1307+I2C_WRITE);
 		i2c_write(DS1307Hour);
-		i2c_write(hour);
+		i2c_write(setHour);
+		i2c_stop();
+
+		//Initializes the Date to given value
+		i2c_start_wait(DS1307+I2C_WRITE);
+		i2c_write(DS1307Date);
+		i2c_write(setDate);
+		i2c_stop();
+
+		//Initializes the Month to given value
+		i2c_start_wait(DS1307+I2C_WRITE);
+		i2c_write(DS1307Month);
+		i2c_write(setMonth);
+		i2c_stop();
+
+		//Initializes the Year to given value
+		i2c_start_wait(DS1307+I2C_WRITE);
+		i2c_write(DS1307Year);
+		i2c_write(setYear);
 		i2c_stop();
 
 		//Set the DS1307 Control Register to output 1Hz on the SQW/OUT Pin
 		i2c_start_wait(DS1307+I2C_WRITE);
 		i2c_write(DS1307Control);
-		i2c_write(0x10);
+		i2c_write(0x10); // See datasheed, here its 0 for RS1 0 for RS0 and 1 for SQWE e.g. 00010000 registry
 		i2c_stop();
 	}
 }
 
 /*
-	Function called to read the RTC Values and (rn) transfer this data via UART
+	Function called to read the RTC Values and save them in variables.
 */
-void DS1307ReadToUart ( void ) {
-	//Placeholders
-	unsigned char second;
-	unsigned char minute;
-	unsigned char hour;
+void DS1307Read ( void ) {
 	
 	//Read Second value and save it
 	i2c_start_wait(DS1307+I2C_WRITE);
@@ -338,41 +388,112 @@ void DS1307ReadToUart ( void ) {
 	i2c_rep_start(DS1307+I2C_READ);
 	hour = i2c_readNak();
 	i2c_stop();
-	
-	//Transmit the saved values via a UART interface
-	USART_Transmit(second);
-	USART_Transmit(minute);
-	USART_Transmit(hour);
-	_delay_ms(1000);
+
+	//Read Date value and save it
+	i2c_start_wait(DS1307+I2C_WRITE);
+	i2c_write(DS1307Date);
+	i2c_rep_start(DS1307+I2C_READ);
+	date = i2c_readNak();
+	i2c_stop();
+
+	//Read Month value and save it
+	i2c_start_wait(DS1307+I2C_WRITE);
+	i2c_write(DS1307Month);
+	i2c_rep_start(DS1307+I2C_READ);
+	month = i2c_readNak();
+	i2c_stop();
+
+	//Read Year value and save it
+	i2c_start_wait(DS1307+I2C_WRITE);
+	i2c_write(DS1307Year);
+	i2c_rep_start(DS1307+I2C_READ);
+	year = i2c_readNak();
+	i2c_stop();
+
 } 
 
-int16_t RaspberryPiWriteMessage ( unsigned char temperature, unsigned char luftdruck, unsigned char PM25,
-		unsigned char PM10, unsigned char timestamp ) {
+/*
+	This function is called evry Hour for it to send all the senor data connected to it to the raspberry pi via UART interface.
+*/
+void RaspberryPiWriteMessage ( ) {
 
-	USART_Transmit(temperature);
-	
-	i2c_start_wait(RaspberryPi+I2C_WRITE);
-	i2c_write(RaspberryPiWriteAddress);
-	int32_t value = i2c_write(temperature);
-	i2c_stop();
+	//Split Tempreature value from a uint32 to 4 uint8 values
+	volatile uint8_t startMessageValue = (uint8_t) 0xFF;
+	volatile uint8_t temperature_1 = (uint8_t) (temperature & 0xFF);
+	volatile uint8_t temperature_2 = (uint8_t) ((temperature >> 8) & 0xFF);
+	volatile uint8_t temperature_3 = (uint8_t) ((temperature >> 16) & 0xFF);
+	volatile uint8_t temperature_4 = (uint8_t) ((temperature >> 24) & 0xFF);
 
-	return value;
-}
+	//Split Pressure value from a uint32 to 4 uint8 values
+	volatile uint8_t pressure_1 = (uint8_t) (pressure & 0xFF);
+	volatile uint8_t pressure_2 = (uint8_t) ((pressure >> 8) & 0xFF);
+	volatile uint8_t pressure_3 = (uint8_t) ((pressure >> 16) & 0xFF);
+	volatile uint8_t pressure_4 = (uint8_t) ((pressure >> 24) & 0xFF);
 
-void RaspberryPiReadMessage ( void ) {
-	//Placeholder
-	unsigned char mesage;
-	
-	//Read Second value and save it
-	i2c_start_wait(RaspberryPi+I2C_WRITE);
-	i2c_write(RaspberryPiReadAddress);
-	i2c_rep_start(RaspberryPi+I2C_READ);
-	mesage = i2c_readAck();
-	i2c_stop();
+	//Split Altitude value from a uint32 to 4 uint8 values
+	volatile uint8_t altitude_1 = (uint8_t) (altitude & 0xFF);
+	volatile uint8_t altitude_2 = (uint8_t) ((altitude >> 8) & 0xFF);
+	volatile uint8_t altitude_3 = (uint8_t) ((altitude >> 16) & 0xFF);
+	volatile uint8_t altitude_4 = (uint8_t) ((altitude >> 24) & 0xFF);
 
-	// check if message is ok or nack
-	USART_Transmit(mesage);
-	
+	//Transmit all the data saved on the microcontroller
+	UDR0 = (uint8_t) startMessageValue;		//Start Of Message 0xFF
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) second;				//Second of day
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) minute;				//Minute of day
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) hour;					//Hour of day
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) date;					//Date of day
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) month;					//Month of day
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) year;					//Year of day
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) temperature_1;			//Temperature split in 4 4byte values
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) temperature_2;
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) temperature_3;
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) temperature_4;
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) pressure_1;			//Pressure split in 4 4byte values
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) pressure_2;
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) pressure_3;
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) pressure_4;
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) altitude_1;			//Altitude split in 4 4byte values
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) altitude_2;
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) altitude_3;
+	USART_WaitUntilReady();
+	_delay_ms(500);
+	UDR0 = (uint8_t) altitude_4;
+	USART_WaitUntilReady();
+	_delay_ms(500);
 }
 
 /*
@@ -386,9 +507,6 @@ void initB280() {
 	Function witch measures the temperature and pressure and saves them in variables.
 */
 void mesaureTemperatureAndPressure() {
-	unsigned char temperature;
-	unsigned char pressure;
-	unsigned char altitude;
 	
 	bmp280_get_status();
 	bmp280_measure();
@@ -400,14 +518,14 @@ void mesaureTemperatureAndPressure() {
 /*
 	Function witch turns on the transistor digital pinout.
 */
-void turnOnTransistor() {
+void turnOnTransistorPin() {
 	PORTB |= (1 << TRANSISTOR_PIN);
 }
 
 /*
 	Function witch turns off the transistor digital pinout.
 */
-void turnOffTransistor() {
+void turnOffTransistorPin() {
 	PORTB &= ~(1 << TRANSISTOR_PIN);
 }
 
@@ -428,8 +546,6 @@ void enterSleep() {
     // Wake up here after interrupt.
     // Disable sleep mode.
     sleep_disable();
-
-	//TODO: Check time.
 }
 
 /* 
@@ -453,7 +569,55 @@ void setup() {
 	// Initialise the different devices.
 	initUSART();
 	i2c_init();
-	DS1307Init(0x00, 0x00, 0x00);
+	DS1307Init(0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+	initB280();
+}
+
+/*
+	This function is called evry hour and is used to execute the main functions of the device.
+*/
+uint8_t mainExecuteFunction() {
+	//Start teh devices connected to the pb0 pin
+	turnOnTransistorPin();
+	_delay_ms(1000);
+	//Read the time from the RTC Clock
+	DS1307Read();
+	_delay_ms(100);
+	//Measure the temperature and pressure
+	mesaureTemperatureAndPressure();
+	_delay_ms(100);
+	//Send the data to the raspberry pi
+	while (true) {
+		if (USARTReceiveStatus() == 0) {
+			break;
+		} else if (USARTReceiveStatus() == 1) {
+			return 1;
+		} else if (USARTReceiveStatus() == 2) {
+			RaspberryPiWriteMessage();
+		}
+	}
+	//As soon as the data is sent and recived, go into busy waiting for 3 minutes so that the pi can take enough time to process the data and save it.
+	_delay_ms(180000);
+	// Wait for pi to give a final ACK if the entire process was sucessfull
+	while (true) {
+		if (USARTReceiveStatus() == 0) {
+			turnOffTransistorPin();
+			break;
+		} else if (USARTReceiveStatus() == 1) {
+			return 1;
+		} else if (USARTReceiveStatus() == 2) {}
+	}
+
+}
+
+void callServer(transmitMessage message) {
+	if (message == SUCCESSFULL) {
+		/* code */
+	} else if (message == FAILED) {
+		/* code */
+	}
+	
+	//See other file for code
 }
 
 /*
@@ -461,14 +625,9 @@ void setup() {
 	In the sleep method the time is checked so that the device can enter the recording and transmiting mode.
 */
 int main(void) {
-	//setup();
-	i2c_init();
-	initUSART();
+	setup();
     while (1) {
-		_delay_ms(200000);
-		USART_Transmit(RaspberryPiWriteMessage(0x15, 0x00, 0x00, 0x00, 0x00));
-		//USART_Transmit(0x55);
-		_delay_ms(5000);
+		//enterSleep(); <-- this is called in the final version of the programm only main the main while function
     }
     
     return 0;
