@@ -1,6 +1,6 @@
+import sys
 import time
 import serial
-import datetime
           
 ser = serial.Serial(
               
@@ -12,30 +12,19 @@ ser = serial.Serial(
     timeout=1
 )
 
-while 1:
-	message = "Ok"
-	data = str.encode(message)
+if len(sys.argv) > 1:
+    exit_value = int(sys.arg[1])
+    if exit_value == 0:
+        message = 'a5'  #96
+        print('--- From now on an ack \'a5\' will be sent to ATMEGA. ---')
+    else:
+        message = '96'
+        print('--- From now on an error response \'96\' will be sent to ATMEAG. ---')
+else:
+    message = '96'
+    print('--- From now on an error response \'96\' will be sent to ATMEAG. ---')
+
+data = str.encode(message)
+for x in range(0, 10):
 	ser.write(data)
-	print('sended')
-	time.sleep(1)
-
-'''
-Sekunde 
-Minute 
-Hour
-
-temp1 
-temp2 
-temp3 
-temp4 
-
-altitude1
-altitude2
-altitude3
-altitude4
-
-pressure1
-pressure2
-pressure3
-pressure4
-'''
+	time.sleep(0.5)

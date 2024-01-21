@@ -1,3 +1,4 @@
+import subprocess
 import sys
 import serial
 from time import sleep
@@ -57,48 +58,34 @@ class ReadUartPi:
         # https://tools.piex.at/ascii-tabelle/
         while True:
             x = self.ser.read()	#.decode('utf-8')
+            print(x)
             hex_data = ' '.join(hex(byte)[2:] for byte in x)
-            print(hex_data)
-            sleep(1)
+            #print(hex_data)
+            sleep(0.5)
         
     def processLoop(self):
         while True:
-            #x = self.ser.read() #b'('
+            x = self.ser.read() #b'('
+            hex_data = ' '.join(hex(byte)[2:] for byte in x)
 
-            if self.messageNr == -1:
-                x = '7e'
-                x = chr(int(x, 16))
-            else:
-                x = '02'
-                x = chr(int(x, 16))
-
-            hex_data = ' '.join(hex(byte)[2:] for byte in x.encode('utf-8'))
-
-            if not hex_data == '0' and not hex_data == '':
-                if self.start_flag == True:
+            if self.start_flag:
                     # Update variables
                     if self.messageNr == 0:
-                        hex_data = '5'
                         self.second = hex_data
                         print('--- Second: {} ---'.format(hex_data))
                     elif self.messageNr == 1:
-                        hex_data = '5'
                         self.minute = hex_data
                         print('--- Minute: {} ---'.format(hex_data))
                     elif self.messageNr == 2:
-                        hex_data = '5'
                         self.hour = hex_data
                         print('--- Hour: {} ---'.format(hex_data))
                     elif self.messageNr == 3:
-                        hex_data = '5'
                         self.day = hex_data
                         print('--- Day: {} ---'.format(hex_data))
                     elif self.messageNr == 4:
-                        hex_data = '5'
                         self.month = hex_data
                         print('--- Month: {} ---'.format(hex_data))
                     elif self.messageNr == 5:
-                        hex_data = '5'
                         self.year = hex_data
                         print('--- Year: {} ---'.format(hex_data))
                     elif self.messageNr <= 9:      # messageNr = 6, 7, 8, 9
@@ -112,16 +99,19 @@ class ReadUartPi:
                         print("--- Altitude List: ", self.altitude_list)
                         if self.messageNr == 17:
                             print('--- All values recieved (18) ---')
+                            self.write_ack(0)
                             self.write_tmp()
                             break  # End the script after processing the message block
                     self.messageNr = self.messageNr + 1
 
+            if not hex_data == '0' and not hex_data == '':
                 if not (self.start_flag):   
                     print(f'--- A message which is not nothing is found: {hex_data} ---')
-                    if hex_data == '7e':
+                    if hex_data == 'ff':
                         self.start_flag = True
                         self.messageNr = 0
                         print(f'--- Start of message block found: {hex_data} ---')
+        sleep(0.5)
 
     def print_all(self):
         print('################################################################')
@@ -137,9 +127,9 @@ class ReadUartPi:
         if len(sys.argv) > 1:
             name_str = f'{int(self.day, 16)}-{int(self.month, 16)}-20{int(self.year, 16)}_{int(self.hour, 16)}-{int(self.minute, 16)}'
             datetime_str = f'{int(self.day, 16)}.{int(self.month, 16)}.20{int(self.year, 16)} {int(self.hour, 16)}:{int(self.minute, 16)}:{int(self.second, 16)}'
-            temperature_str = str( int( "".join(self.temperature_list), 16 ) )
-            pressure_str = str( int( "".join(self.pressure_list), 16 ) )
-            altitude_str = str( int( "".join(self.altitude_list), 16 ) )
+            temperature_str = str( int( "".join(filter(lambda x: x != '0', self.temperature_list)), 16 ) )
+            pressure_str = str( int( "".join(filter(lambda x: x != '0', self.pressure_list)), 16 ) )
+            altitude_str = str( int( "".join(filter(lambda x: x != '0', self.altitude_list)), 16 ) )
 
             with open(sys.argv[1], 'r+') as file:
                 file.seek(0)
@@ -151,6 +141,25 @@ class ReadUartPi:
             print('--- Values were successfully saved in a temporary file. ---')
         else:
             print('--- Values were not saved in a temporary file. ---')
+
+    def write_ack(self, ok_value):
+        subprocess.Popen(["/usr/bin/python", "/home/pi/TimeLapseBox/TimeLapseBox/src/uart_write.py", ok_value])
+
+        #response_history = []
+        #noResponse = True
+        #while noResponse:
+            #self.ser.write(data)
+            #print('--- Sended: ', message, ' ---')
+            #sleep(0.5)
+            #response = self.ser.read()
+            #response_history.append(' '.join(hex(byte)[2:] for byte in response))
+
+            # Durch die Liste laufen, wobei der Schritt 2 ist
+            #for i in range(0, len(response_history) - 1, 1):
+                # Überprüfen, ob die beiden aufeinanderfolgenden Einträge "a" und 5 sind
+                #if f'{response_history[i]}{response_history[i + 1]}' == message:
+                    #noResponse = False
+                    #print('--- Recieved Response: {} ---'.format(message))
 
 readUartClass = ReadUartPi()
 readUartClass.processLoop()
