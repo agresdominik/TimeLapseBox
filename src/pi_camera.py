@@ -9,6 +9,7 @@ import re
 
 # Import libraries for image processing
 import cv2
+import numpy
 from picamera import PiCamera
 
 
@@ -34,6 +35,7 @@ class CaptureImagePi:
     	Constructor that initializes the 'attempts' attribute to 0.
     	"""
 		self.attempts = 0
+		self.brightness_adjustment = 0
 
 	def internet_connected(self):
 		"""
@@ -102,6 +104,9 @@ class CaptureImagePi:
         """
 		# Read the image
 		image = cv2.imread(imgPath + '.jpg', -1)
+
+		image = numpy.clip(image + self.brightness_adjustment, 0, 255)
+		cv2.imwrite(imgPath + '-' + str(self.brightness_adjustment) + '-OpenCV.jpg', image)
 
 		# Calculate sharpness
 		sharpness = cv2.Laplacian(image, cv2.CV_64F).var()
@@ -175,6 +180,7 @@ class CaptureImagePi:
 			print(f'Image sharpness and brightness are insufficient ({threshold_sharpness}/{threshold_brightness})')
 			print('   Sharpness: {}'.format(sharpness))
 			print('   Brightness: {}'.format(brightness))
+			self.brightness_adjustment = self.brightness_adjustment + 15
 			self.try_again()
 
 		elif sharpness < threshold_sharpness:
@@ -185,6 +191,7 @@ class CaptureImagePi:
 		else:
 			print(f'Image brightness is insufficient ({threshold_brightness})')
 			print('   Brightness: {}'.format(brightness))
+			self.brightness_adjustment = self.brightness_adjustment + 15
 			self.try_again()
 		print()
 
