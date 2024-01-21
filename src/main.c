@@ -367,7 +367,6 @@ void DS1307Init (unsigned char setSecond, unsigned char setMinute, unsigned char
 	Function called to read the RTC Values and save them in variables.
 */
 void DS1307Read ( void ) {
-	
 	//Read Second value and save it
 	i2c_start_wait(DS1307+I2C_WRITE);
 	i2c_write(DS1307Second);
@@ -416,7 +415,6 @@ void DS1307Read ( void ) {
 	This function is called evry Hour for it to send all the senor data connected to it to the raspberry pi via UART interface.
 */
 void RaspberryPiWriteMessage ( ) {
-
 	//Split Tempreature value from a uint32 to 4 uint8 values
 	volatile uint8_t startMessageValue = (uint8_t) 0xFF;
 	volatile uint8_t temperature_1 = (uint8_t) (temperature & 0xFF);
@@ -507,7 +505,6 @@ void initB280() {
 	Function witch measures the temperature and pressure and saves them in variables.
 */
 void mesaureTemperatureAndPressure() {
-	
 	bmp280_get_status();
 	bmp280_measure();
 	temperature = bmp280_gettemperature();
@@ -554,7 +551,6 @@ void enterSleep() {
 	Also multiple init functions are called.
 */
 void setup() {
-
     // Configure INT0 (pin PD2) to trigger an interrupt on the rising edge.
     EICRA |= (1 << ISC01) | (1 << ISC00);
     // Enable INT0.
@@ -566,11 +562,11 @@ void setup() {
     // Enable global interrupts.
     sei();
 
-	// Initialise the different devices.
+	// Initialise the different devices and interfaces.
 	initUSART();
 	i2c_init();
-	DS1307Init(0x00, 0x00, 0x0C, 0x16, 0x01, 0x18);
 	initB280();
+	DS1307Init(0x00, 0x00, 0x0C, 0x16, 0x01, 0x18); //<-- Call this method only once to setup correct time and enable sqw output
 }
 
 /*
@@ -583,6 +579,9 @@ uint8_t mainExecuteFunction() {
 	//Read the time from the RTC Clock
 	DS1307Read();
 	_delay_ms(100);
+	if (hour >= 0x13) {
+		return 0;
+	}
 	//Measure the temperature and pressure
 	mesaureTemperatureAndPressure();
 	_delay_ms(100);
