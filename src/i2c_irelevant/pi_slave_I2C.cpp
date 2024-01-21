@@ -1,5 +1,6 @@
 #include <pigpio.h>
 #include <iostream>
+#include <cctype> // tolower()
 
 using namespace std;
 
@@ -9,68 +10,85 @@ using namespace std;
 void runSlave();
 void closeSlave();
 int getControlBits(int, bool);
+string toLowerCase(string);
 
-const int slaveAddress = 0x09;  // <-- Address of choice
+const int slaveAddress = 0x09;  // <-- The Pi does not have a fixed I2C slave address, therefore address of choice
 bsc_xfer_t xfer;                // Struct to control data flow
 
-int main(){
-    // Chose one of those two lines (comment the other out):
-    //runSlave();
-    closeSlave();
+/*
+typedef struct
+{
+   uint32_t control;          // Write
+   int rxCnt;                 // Read only, the number of received bytes placed in rxBuf
+   char rxBuf[BSC_FIFO_SIZE]; // Read only
+   int txCnt;                 // Write, the number of bytes to be transmitted
+   char txBuf[BSC_FIFO_SIZE]; // Write, the bytes to be trasnmitted
+} bsc_xfer_t;
+*/
+
+int main() {
+    // 'gpioInitialise()' initializes the pigpio library and must be called before most library functions. 
+    // Also returns the pigpio version number if successfully executed.
+    gpioInitialise();
+
+    runSlave();
+
+    // There is currently no option to close the slave instance after the runtime, so it must be closed manually if necessary.
+    //closeSlave();
 
     return 0;
 }
 
 void runSlave() {
-    // Initialize GPIOs
-    gpioInitialise();
-    cout << "Initialized GPIOs\n";
-
     // Close old device (if any)
     xfer.control = getControlBits(slaveAddress, false); // To avoid conflicts when restarting
     bscXfer(&xfer);
 
     // Set I2C slave Address to 0x0A
     xfer.control = getControlBits(slaveAddress, true);
-    int status = bscXfer(&xfer); // Should now be visible in I2C-Scanners
+    //int status = bscXfer(&xfer); // Should now be visible in I2C-Scanners
     
-    if (status >= 0)
-    {
+    if (true/*status >= 0*/) {
         // Successfully opened the I2C slave
-        cout << "Opened slave\n";
+        cout << "\n" << " Opened slave\n" << "\n";
         xfer.rxCnt = 0;
 
         // Continuous loop to receive data
-        while(1){
+        while(1) {
             bscXfer(&xfer);
             if(xfer.rxCnt > 0) {
+                if(xfer.rxBuf[0] == '0')
+                    cout << "\n" << "Transmission received via I2C bus: \n";
+                cout << "(" << xfer.rxBuf[0] << ") ";
                 cout << "Received " << xfer.rxCnt << " bytes: ";
-                for(int i = 0; i < xfer.rxCnt; i++)
-                    cout << xfer.rxBuf[i];
+
+                string message = "";
+                for(int i = 1; i < xfer.rxCnt; i++)
+                    message = message + xfer.rxBuf[i];
+                cout << message;
                 cout << "\n";
+
+                message = toLowerCase(message);
+                if(message == "ende" || message == "shutdown") {
+                    closeSlave();
+                    system("sudo shutdown -h now");
+                }
             }
-            //if (xfer.rxCnt > 0){
-            //    cout << xfer.rxBuf;
-            //}
         }
     } else {
-        cout << "Failed to open slave!!!\n";
+        cout << "Failed to open slave!\n";
     }
 }
 
-void closeSlave() {
-    // Initialize GPIOs
-    gpioInitialise();
-    cout << "Initialized GPIOs\n";
-
+void closeSlave() { 
     // Close old device
     xfer.control = getControlBits(slaveAddress, false);
     bscXfer(&xfer);
     cout << "Closed slave.\n";
 
-    // Terminate GPIOs
+    // 'gpioTerminate()' terminates the pigpio library.
+    // This function resets the used DMA channels, releases memory, and terminates any running threads.
     gpioTerminate();
-    cout << "Terminated GPIOs.\n";
 }
 
 int getControlBits(int address /* max 127 */, bool open) {
@@ -82,15 +100,16 @@ int getControlBits(int address /* max 127 */, bool open) {
 
     Bits 0-13 are copied unchanged to the BSC CR register. See pages 163-165 of the Broadcom 
     peripherals document for full details. 
+    https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf#page=164
 
     aaaaaaa defines the I2C slave address (only relevant in I2C mode)
     IT  invert transmit status flags
     HC  enable host control
     TF  enable test FIFO
     IR  invert receive status flags
-    RE  enable receive
-    TE  enable transmit
-    BK  abort operation and clear FIFOs
+    RE  enable receive  +
+    TE  enable transmit +
+    BK  abort operation and clear FIFOs -
     EC  send control register as first I2C byte
     ES  send status register as first I2C byte
     PL  set SPI polarity high
@@ -109,4 +128,12 @@ int getControlBits(int address /* max 127 */, bool open) {
         flags = /*BK:*/ (1 << 7) | /*I2:*/ (0 << 2) | /*EN:*/ (0 << 0);
 
     return (address << 16 /*= to the start of significant bits*/) | flags;
+}
+
+string toLowerCase(string input) {
+    string result;
+    for (char ch : input) {
+        result += std::tolower(ch);
+    }
+    return result;
 }
