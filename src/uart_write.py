@@ -13,7 +13,7 @@ ser = serial.Serial(
 )
 
 if len(sys.argv) > 1:
-    exit_value = int(sys.arg[1])
+    exit_value = int(sys.argv[1])
     if exit_value == 0:
         message = 'a5'  #96
         print('--- From now on an ack \'a5\' will be sent to ATMEGA. ---')
