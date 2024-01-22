@@ -5,7 +5,8 @@ tmp_file_path=$1
 image_quality=$2
 
 # Path to the target directory.
-target_path="/mnt/usb/Pictures"
+image_path="/mnt/usb/Pictures"
+csv_path="/mnt/usb/TimeLapseData.csv"
 
 # Execute if the USB stick is not recognized automatically.
 if ! grep -qs '/mnt/usb' /proc/mounts; then
@@ -22,27 +23,34 @@ if [ -f "$tmp_file_path" ]; then
 
     image_name="${NAME}.jpg"
     image_raw_name="${NAME}.jpg"
+
+    # Überprüfe, ob die CSV-Datei existiert, falls nicht, lege sie an
+    if [ ! -e "$csv_path" ]; then
+        printf "Time,Temperature,Presssure,Altitude\n" > "$csv_path"
+    fi
+    printf "%s,%s,%s,%s\n" "$DATETIME" "$TEMPERATURE" "$PRESSURE" "$ALTITUDE" >> "$csv_path"
+    echo "The CSV file has been successfully updated."
 else
     echo "The file does not exist: $tmp_file_path"
 
     # Get the number of existing images, for alternative image_name.
-    count_images=$(find "$target_path" -maxdepth 1 -type f -name '*.jpg' | wc -l)
+    count_images=$(find "$image_path" -maxdepth 1 -type f -name '*.jpg' | wc -l)
     image_name="${count_images}.jpg"
 
-    count_images=$(find "$target_path/raw" -maxdepth 1 -type f -name '*.jpg' | wc -l)
+    count_images=$(find "$image_path/raw" -maxdepth 1 -type f -name '*.jpg' | wc -l)
     image_raw_name="${count_images}.jpg"
 fi
 
 if [ "$image_quality" -eq 0 ]; then
     # Copy the new image and name it accordingly.
-    if cp "/home/pi/TimeLapseBox/bootData/image-OpenCV.jpg" "$target_path/$image_name"; then
-        cp "/home/pi/TimeLapseBox/bootData/image.jpg" "$target_path/raw/$image_name"
+    if cp "/home/pi/TimeLapseBox/bootData/image-OpenCV.jpg" "$image_path/$image_name"; then
+        cp "/home/pi/TimeLapseBox/bootData/image.jpg" "$image_path/raw/$image_name"
         echo "Image was successfully saved and named as \"$image_name\"."
     else
         echo "Error copying the image file!"
     fi
 else
-    if cp "/home/pi/TimeLapseBox/bootData/image.jpg" "$target_path/raw/$image_name"; then
+    if cp "/home/pi/TimeLapseBox/bootData/image.jpg" "$image_path/raw/$image_name"; then
         echo "Raw image was successfully saved and named as \"$image_name\"."
     else
         echo "Error copying the raw image file!"
