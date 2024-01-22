@@ -62,7 +62,7 @@ class ReadUartPi:
             print(x)
             hex_data = ' '.join(hex(byte)[2:] for byte in x)
             print(hex_data)
-            sleep(0.5)
+            time.sleep(0.5)
         
     def processLoop(self):
         # Setze den Startzeitpunkt für den nächsten Timeout
@@ -103,6 +103,7 @@ class ReadUartPi:
                         if self.messageNr == 17:
                             print('--- All values recieved (18) ---')
                             self.write_ack(0)
+                            time.sleep(1)   # Is only for a nicer output, because of the subprocess in write_ack()
                             self.write_tmp()
                             exit(0)  # End the script after processing the message block
                     self.messageNr = self.messageNr + 1
@@ -110,14 +111,16 @@ class ReadUartPi:
             if not hex_data == '0' and not hex_data == '':
                 if not (self.start_flag):   
                     print(f'--- A message which is not nothing is found: {hex_data} ---')
-                    if hex_data == 'ff' or hex_data == '7ee':
+                    if hex_data == 'ff' or hex_data == '7e':
                         self.start_flag = True
                         self.messageNr = 0
                         print(f'--- Start of message block found: {hex_data} ---')
-            elif time.time() - start_time > self.timeout_seconds:    # Überprüfe, ob der Timeout abgelaufen ist
+            elif time.time() - start_time > self.timeout_seconds:    # Check whether the timeout has expired.
                 print("### Timeout reached, no message received via UART! ###")
                 print('### UART Connection closed ###')
-                exit(1)  # Beende die Schleife
+                self.write_ack(1)
+                time.sleep(1)   # Is only for a nicer output, because of the subprocess in write_ack()
+                exit(1)  # End the script
 
     def print_all(self):
         print('################################################################')
@@ -131,8 +134,8 @@ class ReadUartPi:
 
     def write_tmp(self):
         if len(sys.argv) > 1:
-            name_str = f'{int(self.day, 16)}-{int(self.month, 16)}-20{int(self.year, 16)}_{int(self.hour, 16)}-{int(self.minute, 16)}'
-            datetime_str = f'{int(self.day, 16)}.{int(self.month, 16)}.20{int(self.year, 16)} {int(self.hour, 16)}:{int(self.minute, 16)}:{int(self.second, 16)}'
+            name_str = f'{self.toStr(self.day)}-{self.toStr(self.month)}-20{self.toStr(self.year)}_{self.toStr(self.hour)}-{self.toStr(self.minute)}'
+            datetime_str = f'{self.toStr(self.day)}.{self.toStr(self.month)}.20{self.toStr(self.year)} {self.toStr(self.hour)}:{self.toStr(self.minute)}:{self.toStr(self.second)}'
             temperature_str = str( int( "".join(filter(lambda x: x != '0', self.temperature_list)), 16 ) )
             pressure_str = str( int( "".join(filter(lambda x: x != '0', self.pressure_list)), 16 ) )
             altitude_str = str( int( "".join(filter(lambda x: x != '0', self.altitude_list)), 16 ) )
@@ -147,6 +150,17 @@ class ReadUartPi:
             print('--- Values were successfully saved in a temporary file. ---')
         else:
             print('--- Values were not saved in a temporary file. ---')
+
+    def toStr(self, value):
+        result = str(int(value, 16))
+
+        # Check whether the length of the value is less than 2
+        if len(result) < 2:
+            # Add a leading zero
+            return f'0{result}'  
+        else:
+            # Otherwise return the value unchanged
+            return result
 
     def write_ack(self, ok_value):
         subprocess.Popen(["/usr/bin/python", "/home/pi/TimeLapseBox/TimeLapseBox/src/uart_write.py", str(ok_value)])
