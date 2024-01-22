@@ -1,7 +1,7 @@
 import subprocess
 import sys
+import time
 import serial
-from time import sleep
 
 class ReadUartPi:
     """
@@ -52,6 +52,7 @@ class ReadUartPi:
         # Flag to indicate the start of a message block
         self.start_flag = False
         self.messageNr = -1
+        self.timeout_seconds = 60
         print('--- UART Connection opened ---')
    
     def readLoop(self):
@@ -60,10 +61,12 @@ class ReadUartPi:
             x = self.ser.read()	#.decode('utf-8')
             print(x)
             hex_data = ' '.join(hex(byte)[2:] for byte in x)
-            #print(hex_data)
+            print(hex_data)
             sleep(0.5)
         
     def processLoop(self):
+        # Setze den Startzeitpunkt für den nächsten Timeout
+        start_time = time.time()
         while True:
             x = self.ser.read() #b'('
             hex_data = ' '.join(hex(byte)[2:] for byte in x)
@@ -101,17 +104,20 @@ class ReadUartPi:
                             print('--- All values recieved (18) ---')
                             self.write_ack(0)
                             self.write_tmp()
-                            break  # End the script after processing the message block
+                            exit(0)  # End the script after processing the message block
                     self.messageNr = self.messageNr + 1
 
             if not hex_data == '0' and not hex_data == '':
                 if not (self.start_flag):   
                     print(f'--- A message which is not nothing is found: {hex_data} ---')
-                    if hex_data == 'ff':
+                    if hex_data == 'ff' or hex_data == '7ee':
                         self.start_flag = True
                         self.messageNr = 0
                         print(f'--- Start of message block found: {hex_data} ---')
-        sleep(0.5)
+            elif time.time() - start_time > self.timeout_seconds:    # Überprüfe, ob der Timeout abgelaufen ist
+                print("### Timeout reached, no message received via UART! ###")
+                print('### UART Connection closed ###')
+                exit(1)  # Beende die Schleife
 
     def print_all(self):
         print('################################################################')
@@ -143,23 +149,7 @@ class ReadUartPi:
             print('--- Values were not saved in a temporary file. ---')
 
     def write_ack(self, ok_value):
-        subprocess.Popen(["/usr/bin/python", "/home/pi/TimeLapseBox/TimeLapseBox/src/uart_write.py", ok_value])
-
-        #response_history = []
-        #noResponse = True
-        #while noResponse:
-            #self.ser.write(data)
-            #print('--- Sended: ', message, ' ---')
-            #sleep(0.5)
-            #response = self.ser.read()
-            #response_history.append(' '.join(hex(byte)[2:] for byte in response))
-
-            # Durch die Liste laufen, wobei der Schritt 2 ist
-            #for i in range(0, len(response_history) - 1, 1):
-                # Überprüfen, ob die beiden aufeinanderfolgenden Einträge "a" und 5 sind
-                #if f'{response_history[i]}{response_history[i + 1]}' == message:
-                    #noResponse = False
-                    #print('--- Recieved Response: {} ---'.format(message))
+        subprocess.Popen(["/usr/bin/python", "/home/pi/TimeLapseBox/TimeLapseBox/src/uart_write.py", str(ok_value)])
 
 readUartClass = ReadUartPi()
 readUartClass.processLoop()

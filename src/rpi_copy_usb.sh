@@ -3,6 +3,7 @@
 
 tmp_file_path=$1
 image_quality=$2
+uart_file=$3
 
 # Path to the target directory.
 image_path="/mnt/usb/Pictures"
@@ -15,7 +16,7 @@ if ! grep -qs '/mnt/usb' /proc/mounts; then
 fi
 
 # Überprüfen, ob der Dateipfad vorhanden ist
-if [ -f "$tmp_file_path" ]; then
+if [ -f "$tmp_file_path" ] && [ "$uart_file" -eq 0 ]; then
     # Werte aus der Datei lesen und als Umgebungsvariablen setzen
     while IFS= read -r line; do
         export "$line"

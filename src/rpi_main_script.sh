@@ -16,6 +16,7 @@ sudo touch $file_path
 
 # Starts the uart_read.py script and sets up a UART connection to receive messages that are stored in a temporary file.
 sudo /usr/bin/python /home/pi/TimeLapseBox/TimeLapseBox/src/uart_read.py "$file_path"
+uart_exit=$?
 
 # Starts the pi_camera.py script and capture its exit code. The exit code shows whether a good picture was taken.
 /usr/bin/python /home/pi/TimeLapseBox/TimeLapseBox/src/pi_camera.py "$file_path"
@@ -23,8 +24,7 @@ pi_camera_exit=$?
 
 # Checks whether a USB is connected, if so, the bash script for copying an image file to the USB stick is executed
 if lsblk | grep -q "sda"; then
-    sudo /usr/bin/bash /home/pi/TimeLapseBox/TimeLapseBox/src/rpi_copy_usb.sh "$file_path" "$pi_camera_exit"
-    sudo /usr/bin/bash /home/pi/TimeLapseBox/TimeLapseBox/src/rpi_save_csv.sh "$file_path" "$pi_camera_exit"
+    sudo /usr/bin/bash /home/pi/TimeLapseBox/TimeLapseBox/src/rpi_copy_usb.sh "$file_path" "$pi_camera_exit" "$uart_exit"
 else
     echo "USB stick is not connected. Please connect the USB stick and try again."
 fi
