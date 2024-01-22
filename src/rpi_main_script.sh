@@ -11,6 +11,9 @@
 file_path='/tmp/timeLapseData'
 sudo touch $file_path
 
+# Only for simulating a transmission and testing the routine:
+/usr/bin/python /home/pi/TimeLapseBox/TimeLapseBox/src/uart_atmega.py &
+
 # Starts the uart_read.py script and sets up a UART connection to receive messages that are stored in a temporary file.
 sudo /usr/bin/python /home/pi/TimeLapseBox/TimeLapseBox/src/uart_read.py "$file_path"
 
@@ -21,6 +24,7 @@ pi_camera_exit=$?
 # Checks whether a USB is connected, if so, the bash script for copying an image file to the USB stick is executed
 if lsblk | grep -q "sda"; then
     sudo /usr/bin/bash /home/pi/TimeLapseBox/TimeLapseBox/src/rpi_copy_usb.sh "$file_path" "$pi_camera_exit"
+    sudo /usr/bin/bash /home/pi/TimeLapseBox/TimeLapseBox/src/rpi_save_csv.sh "$file_path" "$pi_camera_exit"
 else
     echo "USB stick is not connected. Please connect the USB stick and try again."
 fi
@@ -28,5 +32,7 @@ fi
 sudo rm -v "$file_path"
 
 # Initiates a system shutdown after the routine has been completed.
-#sudo shutdown -h now
+#if ! (ping -c 1 $zieladresse &> /dev/null); then
+#    sudo shutdown
+#fi
 exit 0
