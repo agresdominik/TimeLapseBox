@@ -2,23 +2,21 @@
 #
 # rpi_main_script.sh
 #
-# This script is executed by the 'rc.local' script, located in the directory '/etc/rc.local'. 
+# This script is designed to be executed by the 'rc.local' script during system boot on a Raspberry Pi.
 # 'rc.local' serves as a superuser startup script, designed to run commands during system boot. 
 # It is considered obsolete but is retained for compatibility with SystemV systems.
 #
 # The "systemctl status rc-local.service" command shows any error messages or logs associated with its execution. 
 
+# Path for the temporary file used during the execution of the script
 file_path='/tmp/timeLapseData'
 sudo touch $file_path
 
-# Only for simulating a transmission and testing the routine:
-/usr/bin/python /home/pi/TimeLapseBox/TimeLapseBox/src/uart_atmega.py &
-
-# Starts the uart_read.py script and sets up a UART connection to receive messages that are stored in a temporary file.
+# Starts the uart_read.py script to establish a UART connection for receiving messages that will be stored in a temporary file.
 sudo /usr/bin/python /home/pi/TimeLapseBox/TimeLapseBox/src/uart_read.py "$file_path"
 uart_exit=$?
 
-# Starts the pi_camera.py script and capture its exit code. The exit code shows whether a good picture was taken.
+# Starts the pi_camera.py script and capture its exit codeto determine if a good picture was taken.
 /usr/bin/python /home/pi/TimeLapseBox/TimeLapseBox/src/pi_camera.py "$file_path"
 pi_camera_exit=$?
 
@@ -29,10 +27,9 @@ else
     echo "USB stick is not connected. Please connect the USB stick and try again."
 fi
 
+# Remove the temporary file used during the script execution
 sudo rm -v "$file_path"
 
 # Initiates a system shutdown after the routine has been completed.
-#if ! (ping -c 1 $zieladresse &> /dev/null); then
-#    sudo shutdown
-#fi
+#sudo shutdown
 exit 0
