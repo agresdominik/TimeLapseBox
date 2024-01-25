@@ -13,7 +13,7 @@ file_path='/tmp/timeLapseData'
 sudo touch $file_path
 
 # Starts the uart_read.py script to establish a UART connection for receiving messages that will be stored in a temporary file.
-sudo /usr/bin/python /home/pi/TimeLapseBox/TimeLapseBox/src/uart_read.py "$file_path"
+/usr/bin/python /home/pi/TimeLapseBox/TimeLapseBox/src/uart_read.py "$file_path"
 uart_exit=$?
 
 # Starts the pi_camera.py script and capture its exit codeto determine if a good picture was taken.
@@ -29,6 +29,14 @@ fi
 
 # Remove the temporary file used during the script execution
 sudo rm -v "$file_path"
+
+# Executes the uart_write.py script with the arguments "0" and "1". 
+# The first argument ("0") signals the ATmega a confirmation message ('a5') via UART, 
+# while the second argument ("1") indicates that the message should be sent in an infinite loop (exit_nr = 1). 
+# This communication informs the ATmega that the Raspberry Pi has completed its TimeLapseBox routine 
+# and is preparing to initiate the shutdown process.
+/usr/bin/python /home/pi/TimeLapseBox/TimeLapseBox/src/uart_write.py "0" "1" &
+sleep 2
 
 # Initiates a system shutdown after the routine has been completed.
 #sudo shutdown
