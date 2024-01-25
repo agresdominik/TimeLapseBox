@@ -8,24 +8,26 @@ class ReadUartPi:
     A class for initializing and managing a UART connection to receive sensor data.
 
     Attributes:
-        - ser: Serial object for UART communication with specified parameters.
-        - second, minute, hour: Time variables for timestamping sensor data.
-        - day, month, year: Date variables for timestamping sensor data.
-        - temperature_list, pressure_list, altitude_list: Lists to store sensor data.
-        - start_flag (boolean): Flag to indicate the start of a message block.
+        - ser (serial.Serial): Serial object for UART communication with specified parameters.
+        - second, minute, hour (int): Time variables for timestamping sensor data.
+        - day, month, year (int): Date variables for timestamping sensor data.
+        - temperature_list, pressure_list, altitude_list (List[str]): Lists to store sensor data.
+        - start_flag (bool): Flag to indicate the start of a message block.
         - messageNr (int): Variable to keep track of the received message number.
+        - timeout_seconds (int): Timeout duration for waiting for UART messages.
 
     Methods:
-        - readLoop():
-        - processLoop():
-        - print_all(): Prints all class attributes.
-        - write_tmp(): Writes the class attributes in a newly generated tempfile.
+        - processLoop(): Main loop for processing incoming UART messages.
+        - write_tmp(): Writes the class attributes in a generated tempfile.
+        - toStr(value: str) -> str: Converts hex value to a formatted string.
+        - write_response(ok_value: int, exit_nr: int): Writes a response to the UART communication.
     """
 
     def __init__(self):
         """
         Initializes the ReadUartPi class.
         """
+        # Initialize UART communication.
         self.ser = serial.Serial(
             port='/dev/ttyAMA0',
             baudrate = 9600,
@@ -35,124 +37,161 @@ class ReadUartPi:
             timeout=1
         )
 
-        # Create time variables
-        self.second = 0
-        self.minute = 0
-        self.hour = 0
+        # Initialize time variables.
+        self.second = []
+        self.minute = []
+        self.hour = []
 
-        self.day = 0
-        self.month = 0
-        self.year = 0
+        self.day = []
+        self.month = []
+        self.year = []
 
-        # Create sensore lists
+        # Initialize sensor data lists.
         self.temperature_list = []
         self.pressure_list = []
         self.altitude_list = []
 
-        # Flag to indicate the start of a message block
+        # Initialize Flag to indicate the start of a message block
         self.start_flag = False
-        self.messageNr = -1
-        self.timeout_seconds = 60
+
+        # Initialize counters
+        self.messageNr = 0
+        self.timeout_seconds = 45
+
         print('--- UART Connection opened ---')
-   
-    def readLoop(self):
-        # https://tools.piex.at/ascii-tabelle/
-        while True:
-            x = self.ser.read()	#.decode('utf-8')
-            print(x)
-            hex_data = ' '.join(hex(byte)[2:] for byte in x)
-            print(hex_data)
-            time.sleep(0.5)
         
     def processLoop(self):
-        # Setze den Startzeitpunkt für den nächsten Timeout
+        """
+        Main loop for processing incoming UART messages.
+        """
+        # Defining a mapping between 'self.messageNr' and their corresponding variable names.
+        # Each key is associated with a tuple containing the variable name and its display name.
+        value_mapping = {
+            1: ('second', 'Second'),
+            2: ('minute', 'Minute'),
+            3: ('hour', 'Hour'),
+            4: ('day', 'Day'),
+            5: ('month', 'Month'),
+            6: ('year', 'Year'),
+            7: ('temperature_list', 'Temperature List'),
+            8: ('temperature_list', 'Temperature List'),
+            9: ('temperature_list', 'Temperature List'),
+            10: ('temperature_list', 'Temperature List'),
+            11: ('pressure_list', 'Pressure List'),
+            12: ('pressure_list', 'Pressure List'),
+            13: ('pressure_list', 'Pressure List'),
+            14: ('pressure_list', 'Pressure List'),
+            15: ('altitude_list', 'Altitude List'),
+            16: ('altitude_list', 'Altitude List'),
+            17: ('altitude_list', 'Altitude List'),
+            18: ('altitude_list', 'Altitude List'),
+        }
+
+        # Send a message via UART indicating readiness to receive data.
+        self.write_response(0, 0)
+
+        # Set the start time for the next timeout.
         start_time = time.time()
+
         while True:
-            x = self.ser.read() #b'('
-            hex_data = ' '.join(hex(byte)[2:] for byte in x)
+            x = self.ser.read() # Read a byte from the UART.
+            hex_data = ' '.join(hex(byte)[2:] for byte in x)    # Convert the byte to hex format.
 
+            # Check if a message block has started.
             if self.start_flag:
-                    # Update variables
-                    if self.messageNr == 0:
-                        self.second = hex_data
-                        print('--- Second: {} ---'.format(hex_data))
-                    elif self.messageNr == 1:
-                        self.minute = hex_data
-                        print('--- Minute: {} ---'.format(hex_data))
-                    elif self.messageNr == 2:
-                        self.hour = hex_data
-                        print('--- Hour: {} ---'.format(hex_data))
-                    elif self.messageNr == 3:
-                        self.day = hex_data
-                        print('--- Day: {} ---'.format(hex_data))
-                    elif self.messageNr == 4:
-                        self.month = hex_data
-                        print('--- Month: {} ---'.format(hex_data))
-                    elif self.messageNr == 5:
-                        self.year = hex_data
-                        print('--- Year: {} ---'.format(hex_data))
-                    elif self.messageNr <= 9:      # messageNr = 6, 7, 8, 9
-                        self.temperature_list.append(hex_data)
-                        print("--- Temperature List: ", self.temperature_list)
-                    elif self.messageNr <= 13:     # messageNr = 10, 11, 12, 13
-                        self.pressure_list.append(hex_data)
-                        print("--- Pressure List: ", self.pressure_list)
-                    elif self.messageNr <= 17:     # messageNr = 14, 15, 16, 17
-                        self.altitude_list.append(hex_data)
-                        print("--- Altitude List: ", self.altitude_list)
-                        if self.messageNr == 17:
-                            print('--- All values recieved (18) ---')
-                            self.write_ack(0)
-                            time.sleep(1)   # Is only for a nicer output, because of the subprocess in write_ack()
-                            self.write_tmp()
-                            exit(0)  # End the script after processing the message block
-                    self.messageNr = self.messageNr + 1
+                # Reset the timeout counter.
+                start_time = time.time()
 
-            if not hex_data == '0' and not hex_data == '':
-                if not (self.start_flag):   
+                # Check if the current message number is in the value mapping.
+                if self.messageNr in value_mapping:
+                    # Retrieve the variable name and display name from the value mapping.
+                    value_name, display_name = value_mapping[self.messageNr]
+
+                    # Access the attribute with the retrieved variable name and append the hex_data.
+                    getattr(self, value_name).append(hex_data)
+
+                    # Print a message indicating the update of the variable with its value.
+                    print('--- {}: {} ---'.format(display_name, hex_data))
+
+                    if self.messageNr == 18:
+                        print('--- All values received (18) ---')
+                        print('--- UART Connection closed ---')
+
+                        # For a nicer output, because of the subprocess in write_response().
+                        time.sleep(1)
+
+                        # Saves the sensor values a temporary file.
+                        self.write_tmp()
+
+                        # End the script after processing the message block.
+                        exit(0)
+                self.messageNr += 1
+
+            # Handle non-empty messages that are not part of a message block.
+            if hex_data and hex_data not in ('0',''):
+                if not self.start_flag:   
                     print(f'--- A message which is not nothing is found: {hex_data} ---')
-                    if hex_data == 'ff' or hex_data == '7e':
+
+                    # Checks if the message announces a message block.
+                    if hex_data == '7e':    #ff
                         self.start_flag = True
                         self.messageNr = 0
                         print(f'--- Start of message block found: {hex_data} ---')
-            elif time.time() - start_time > self.timeout_seconds:    # Check whether the timeout has expired.
-                print("### Timeout reached, no message received via UART! ###")
-                print('### UART Connection closed ###')
-                self.write_ack(1)
-                time.sleep(1)   # Is only for a nicer output, because of the subprocess in write_ack()
-                exit(1)  # End the script
 
-    def print_all(self):
-        print('################################################################')
-        print('Received data:')
-        print(f'Day: {self.day}-{self.month}-{self.year}')
-        print(f'Time: {self.second}:{self.minute}:{self.hour}')
-        print('Temperature List: ', self.temperature_list)
-        print('Pressure List: ', self.pressure_list)
-        print('Altitude List: ', self.altitude_list)
-        print('################################################################')
+            # Check for timeout.
+            if time.time() - start_time > self.timeout_seconds:
+                print('--- Timeout reached, no message received via UART! ---')
+                print('--- UART Connection closed ---')
+
+                # Send an error message over UART.
+                self.write_response(1, 0)
+                
+                # For a nicer output, because of the subprocess in write_response().
+                time.sleep(1)
+
+                # End the script
+                exit(1)
 
     def write_tmp(self):
+        """
+        Writes the sensor values in a generated tempfile.
+        """
         if len(sys.argv) > 1:
-            name_str = f'{self.toStr(self.day)}-{self.toStr(self.month)}-20{self.toStr(self.year)}_{self.toStr(self.hour)}-{self.toStr(self.minute)}'
-            datetime_str = f'{self.toStr(self.day)}.{self.toStr(self.month)}.20{self.toStr(self.year)} {self.toStr(self.hour)}:{self.toStr(self.minute)}:{self.toStr(self.second)}'
-            temperature_str = str( int( "".join(filter(lambda x: x != '0', self.temperature_list)), 16 ) )
-            pressure_str = str( int( "".join(filter(lambda x: x != '0', self.pressure_list)), 16 ) )
-            altitude_str = str( int( "".join(filter(lambda x: x != '0', self.altitude_list)), 16 ) )
+            str_day = self.toStr(self.day)
+            str_month = self.toStr(self.month)
+            str_year = self.toStr(self.year)
+            str_second = self.toStr(self.second)
+            str_minute = self.toStr(self.minute)
+            str_hour = self.toStr(self.hour)
+
+            name_str = f'{str_day}-{str_month}-20{str_year}_{str_hour}-{str_minute}-{str_second}'
+            datetime_str = f'{str_day}.{str_month}.20{str_year} {str_hour}:{str_minute}:{str_second}'
+            temperature_str = str( int( ''.join(filter(lambda x: x != '0', self.temperature_list)), 16 ) )
+            pressure_str = str( int( ''.join(filter(lambda x: x != '0', self.pressure_list)), 16 ) )
+            altitude_str = str( int( ''.join(filter(lambda x: x != '0', self.altitude_list)), 16 ) )
 
             with open(sys.argv[1], 'r+') as file:
                 file.seek(0)
                 file.write(f'NAME={name_str}\n')
-                file.write(f"DATETIME={datetime_str}\n")
-                file.write(f"TEMPERATURE={temperature_str}\n")
-                file.write(f"PRESSURE={pressure_str}\n")
-                file.write(f"ALTITUDE={altitude_str}\n")
+                file.write(f'DATETIME={datetime_str}\n')
+                file.write(f'TEMPERATURE={temperature_str}\n')
+                file.write(f'PRESSURE={pressure_str}\n')
+                file.write(f'ALTITUDE={altitude_str}\n')
             print('--- Values were successfully saved in a temporary file. ---')
         else:
             print('--- Values were not saved in a temporary file. ---')
 
     def toStr(self, value):
-        result = str(int(value, 16))
+        """
+        Converts hex value to a formatted string.
+
+        Parameters:
+		- value (str): The hex value to be formatted.
+
+		Returns:
+		str: The formatted and double-digit string.
+        """
+        result = str(int(str(value[0]), 16))
 
         # Check whether the length of the value is less than 2
         if len(result) < 2:
@@ -162,8 +201,25 @@ class ReadUartPi:
             # Otherwise return the value unchanged
             return result
 
-    def write_ack(self, ok_value):
-        subprocess.Popen(["/usr/bin/python", "/home/pi/TimeLapseBox/TimeLapseBox/src/uart_write.py", str(ok_value)])
+    def write_response(self, ok_value, exit_nr):
+        """
+        Writes a response message using a subprocess.   The outbox number specifies the duration for sending the reply.
 
+        This method starts a subprocess to send a response message for a specified period of time.
+        The response message is generated using the '/home/pi/TimeLapseBox/TimeLapseBox/src/uart_write.py' script,
+        which takes two arguments: ok_value and exit_nr. These values are converted to strings before being passed
+        as command-line arguments to the script.
+
+        Parameters:
+            ok_value (int): The value that represents the success or failure of the previous data transfer.
+            exit_nr (int): The exit number specifies the duration for sending the response.
+            
+        Note:
+            Ensure that the '/home/pi/TimeLapseBox/TimeLapseBox/src/uart_write.py' script is present at the specified path
+            and is executable. Also, make sure that the Python interpreter at '/usr/bin/python' is correct for your system.
+        """
+        subprocess.Popen(['/usr/bin/python', '/home/pi/TimeLapseBox/TimeLapseBox/src/uart_write.py', str(ok_value), str(exit_nr)])
+
+# Instantiate an instance of the class 'ReadUartPi' and run the class.
 readUartClass = ReadUartPi()
 readUartClass.processLoop()
