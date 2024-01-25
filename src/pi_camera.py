@@ -294,7 +294,7 @@ class CaptureImagePi:
 		# Put sharpness annotation on the image
 		image = cv2.putText(image, sharpness_text, (sharpness_y, sharpness_x), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
-# Initializes an instance of the class 'CaptureImagePi'.
+# Instantiate an instance of the class 'CaptureImagePi'.
 captureImageClass = CaptureImagePi()
 captureImageClass.capture_image()
 print()	# Output for better visual clarity.
