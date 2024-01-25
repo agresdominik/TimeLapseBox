@@ -9,6 +9,7 @@ import re
 
 # Import libraries for image processing
 import cv2
+import numpy
 from picamera import PiCamera
 
 
@@ -34,6 +35,7 @@ class CaptureImagePi:
     	Constructor that initializes the 'attempts' attribute to 0.
     	"""
 		self.attempts = 0
+		self.brightness_adjustment = 0
 
 	def internet_connected(self):
 		"""
@@ -41,12 +43,11 @@ class CaptureImagePi:
 		
 		Returns:
 		- True: If the device has a successful connection to the internet.
-		- False: If the device does not have a successful connection to the internet or
-		encounters an exception during the ping attempt.
+		- False: If the device does not have a successful connection to the internet or encounters an exception during the ping attempt.
 		"""
 		try:
 			# Delay to account for potential network latency
-			sleep(20)
+			sleep(15)
 
 			# Attempt to ping Google's server with a timeout of 1 second
 			check_output('ping -c 1 google.com', shell=True)
@@ -95,13 +96,17 @@ class CaptureImagePi:
 
 		The method reads the image, calculates its sharpness and brightness, and compares them with predefined thresholds.
         If both sharpness and brightness are above the thresholds, the image is considered of acceptable quality,
-        and additional information is added to the image. If not, appropriate messages are printed, and the user may try again.
+        and additional information is added to the image. If not, appropriate messages are printed, 
+		and the process is restarted for a new attempt if appropriate.
 
         Parameters:
         - imgPath (str): The path to the image file without the file extension.
         """
 		# Read the image
 		image = cv2.imread(imgPath + '.jpg', -1)
+
+		# Adjusts the brightness of the image using NumPy by adding a specified value.
+		image = numpy.clip(image + self.brightness_adjustment, 0, 255)
 
 		# Calculate sharpness
 		sharpness = cv2.Laplacian(image, cv2.CV_64F).var()
@@ -111,33 +116,37 @@ class CaptureImagePi:
 		# Calculate brightness using a helper method
 		brightness = self.calculate_brightness(image)
 
-		# Set experimental threshold values
-		threshold_sharpness = 35 #57
-		threshold_brightness = 20
+		# Specify the threshold value for sharpness and brightness.
+		threshold_sharpness = 57
+		threshold_brightness = 25
 		print()
 
-		# Evaluate image quality based on sharpness and brightness
+		# Evaluate image quality based on sharpness and brightness:
+		# Check if both sharpness and brightness meet the specified thresholds.
 		if sharpness >= threshold_sharpness and brightness >= threshold_brightness:
+			# Print a message indicating that the image quality is acceptable.
 			print(f'Image quality is OK ({threshold_sharpness}/{threshold_brightness})')
 			print('   Sharpness: {}'.format(sharpness))
 			print('   Brightness: {}'.format(brightness))
 
+			# Initialize variables for environmental sensor data with default placeholders.
 			date_time = '-'
 			temperature = '-'
 			pressure = '-'
 			altitude = '-'
 
-			# Read the sensor values from the external environment through the use of environment variables (os.environ), 
-			# If value not found replaced by default placeholder.
+			# Read sensor values from an external environment file specified as a command line argument.
 			if len(sys.argv) > 1:
 				with open(sys.argv[1], 'r') as file:
 					content = file.read()
 
+					# Extract relevant information using regular expressions.
 					datetime_match = re.search(r'DATETIME=(.*)', content)
 					temperature_match = re.search(r'TEMPERATURE=(.*)', content)
 					pressure_match = re.search(r'PRESSURE=(.*)', content)
 					altitude_match = re.search(r'ALTITUDE=(.*)', content)
 
+					# Update variables with sensor data if matches are found in the file content.
 					if datetime_match:
 						date_time = datetime_match.group(1)
 					if temperature_match:
@@ -151,42 +160,57 @@ class CaptureImagePi:
 			if self.internet_connected() and date_time == '-':
 				date_time = datetime.now().strftime('%d.%m.%Y %H:%M')
 
-			# Add labels to the image overlay
+			# Set font properties for image annotations.
 			font = cv2.FONT_HERSHEY_DUPLEX
 			font_size = 2
+
+			# Add label annotations to the image overlay.
 			image = cv2.putText(image, date_time, (20, image.shape[0] - 170), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 			image = cv2.putText(image, 'Temperature: ' + temperature + ' Grad Celsius', (20, image.shape[0] - 120), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
-			image = cv2.putText(image, 'Pressure: ' + pressure + ' Pa', (20, image.shape[0] - 70), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
+			image = cv2.putText(image, 'Pressure: ' + pressure + ' kPa', (20, image.shape[0] - 70), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 			image = cv2.putText(image, 'Altidude: ' + altitude + ' m', (20, image.shape[0] - 20), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
 			# Checks whether all values have a valid value.
 			if '-' in (date_time, temperature, pressure, altitude):
 				image = cv2.putText(image, 'CONNECTION ERROR', (20, image.shape[0] - 250), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
-			# Print some processing data
+			# Print some processing data.
 			#self.processing_data(image, brightness, sharpness)
 
-			# Display and save the processed image
+			# Display and save the processed image.
 			cv2.waitKey(0)
 			cv2.destroyAllWindows()
 			cv2.imwrite(imgPath + '-OpenCV.jpg', image)
 
+		# Check if image sharpness and brightness is below the thresholds.
 		elif sharpness < threshold_sharpness and brightness < threshold_brightness:
 			print(f'Image sharpness and brightness are insufficient ({threshold_sharpness}/{threshold_brightness})')
 			print('   Sharpness: {}'.format(sharpness))
 			print('   Brightness: {}'.format(brightness))
+
+			# Increment the brightness adjustment by 15.
+			self.brightness_adjustment += 15
+
+			# Restart the image capture process with the updated brightness adjustment.
 			self.try_again()
 
+		# Check if image sharpness is below the threshold
 		elif sharpness < threshold_sharpness:
 			print(f'Image sharpness is insufficient ({threshold_sharpness})')
 			print('   Sharpness: {}'.format(sharpness))
-			self.try_again()
 
+			# Restart the image capture process to obtain a better image.
+			self.try_again()
+	
 		else:
 			print(f'Image brightness is insufficient ({threshold_brightness})')
 			print('   Brightness: {}'.format(brightness))
+
+			# Increment the brightness adjustment by 15.
+			self.brightness_adjustment += 15
+
+			# Restart the image capture process with the updated brightness adjustment.
 			self.try_again()
-		print()
 
 	def calculate_brightness(self, image):
 		"""
@@ -239,31 +263,39 @@ class CaptureImagePi:
 		- brightness (float): The brightness value to be displayed on the image.
 		- sharpness (float): The sharpness value to be displayed on the image.
 		"""
+		# Set font properties for image annotations.
 		font = cv2.FONT_HERSHEY_DUPLEX
 		font_size = 2
 
-		# Compare brightness and sharpness values for consistent annotation
+		# Compare brightness and sharpness values for consistent annotation.
 		y = max(str(brightness), str(sharpness))
 
-		# Brightness text
+    	# Add annotation for brightness.
 		brightness_text = 'Helligkeit: '
 		text_width_b, text_height_b = cv2.getTextSize(brightness_text + y, font, 1.5, font_size)[0]
 		brightness_text += str(brightness)
 
+		# Determine position for brightness annotation
 		brightness_y = image.shape[1] - (text_width_b + 10)
 		brightness_x = image.shape[0] - 70
+
+		# Put brightness annotation on the image
 		image = cv2.putText(image, brightness_text, (brightness_y, brightness_x), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
-		# Sharpness text
+		# Add annotation for sharpness
 		sharpness_text = 'Bildschaerfe: '
 		text_width_s, text_height_s = cv2.getTextSize(sharpness_text  + y, font, 1.5, font_size)[0]
 		sharpness_text += str(sharpness)
-				
+
+	 	# Determine position for sharpness annotation
 		sharpness_y = image.shape[1] - (text_width_s + 10)
 		sharpness_x = image.shape[0] - 20
+
+		# Put sharpness annotation on the image
 		image = cv2.putText(image, sharpness_text, (sharpness_y, sharpness_x), font, 1.5, (255,255,255), font_size, cv2.LINE_AA)
 
-# Initializes an instance of the class 'CaptureImagePi'
+# Instantiate an instance of the class 'CaptureImagePi'.
 captureImageClass = CaptureImagePi()
 captureImageClass.capture_image()
+print()	# Output for better visual clarity.
 exit(0)
