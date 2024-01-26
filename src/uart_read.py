@@ -133,7 +133,7 @@ class ReadUartPi:
                     print(f'--- A message which is not nothing is found: {hex_data} ---')
 
                     # Checks if the message announces a message block.
-                    if hex_data == '7e':    #ff
+                    if hex_data == 'ff':
                         self.start_flag = True
                         self.messageNr = 0
                         print(f'--- Start of message block found: {hex_data} ---')
