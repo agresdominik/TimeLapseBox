@@ -83,22 +83,22 @@ enum transmitMessage {
 };
 
 //DEPRICATED:
-/* A enum value passed to the transmit function for differentiating transmit modes in the Honeywell PM Sensor 
+/* A enum value passed to the transmit function for differentiating transmit modes in the Honeywell PM Sensor */
 enum transmitFlag {
 	READVALUE,
 	STARTMEASUREMENT,
 	STOPMEASUREMENT,
 	STOPAUTOSEND,
 	ENABLEAUTOSEND
-}; */
+};
 
 //DEPRICATED:
-/* Predeclared Command Values for the Honeywell PM Sensor (See Honeywell data sheet for more information)
+/* Predeclared Command Values for the Honeywell PM Sensor (See Honeywell data sheet for more information) */
 static uint8_t readCommand[4] = {0x68, 0x01, 0x04, 0x93};
 static uint8_t startMeasurementCommand[4] = {0x68, 0x01, 0x01, 0x96};
 static uint8_t stopMeasurementCommand[4] = {0x68, 0x01, 0x02, 0x95};
 static uint8_t stopAutosend[4] = {0x68, 0x01, 0x20, 0x77};
-static uint8_t enableAutosend[4] = {0x68, 0x01, 0x40, 0x57}; */
+static uint8_t enableAutosend[4] = {0x68, 0x01, 0x40, 0x57}; 
 
 /* These Values are used by the timer to check if timeout has happened and to end ever waiting funtions */
 volatile uint8_t timeoutFlag = 0;
@@ -220,7 +220,7 @@ unsigned char USARTReceive( void ) {
 }
 
 //DEPRICATED:
-/* Function used for Transmitting entire command to the Honeywell PM Sensor
+/* Function used for Transmitting entire command to the Honeywell PM Sensor */
 void USART_TransmitPollingHoneywell(transmitFlag) {
 	// Wait for data to be received 
 	USART_WaitUntilReady();
@@ -267,7 +267,7 @@ void USART_TransmitPollingHoneywell(transmitFlag) {
 		//TODO: Here Call the USARTReceiveStatus() Function and check if a Pos. ACK was sent
 		
 	}
-} */
+}
 
 /* 
 	Function witch saves the 2 Byte Positive or Negative ACK in a variable and checks if it is valid.
@@ -304,7 +304,7 @@ uint8_t USARTReceiveStatus( void ) {
 	
 }
 
-/* Function Exported to a different c file.
+/* 
 	Function called to initialize the DS1307 RTC Module.
 	A hexadecimal value for actual second, minute and hour should be passed and will be set as actual time on the RTC clock.
 	If no i2c device can be found, a error clause will trigger.
@@ -513,14 +513,14 @@ void mesaureTemperatureAndPressure() {
 }
 
 /*
-	Function witch turns on the transistor digital pinout.
+	Function witch turns on the portb0 digital pinout for sensors.
 */
 void turnOnTransistorPin() {
 	PORTB |= (1 << TRANSISTOR_PIN);
 }
 
 /*
-	Function witch turns off the transistor digital pinout.
+	Function witch turns off the portb0 digital pinout for sensors.
 */
 void turnOffTransistorPin() {
 	PORTB &= ~(1 << TRANSISTOR_PIN);
@@ -579,7 +579,7 @@ uint8_t mainExecuteFunction() {
 	//Read the time from the RTC Clock
 	DS1307Read();
 	_delay_ms(100);
-	if (hour >= 0x13) {
+	if (hour >= 0x13 && hour <= 0x08) {
 		return 0;
 	}
 	//Measure the temperature and pressure
@@ -611,12 +611,10 @@ uint8_t mainExecuteFunction() {
 
 void callServer(transmitMessage message) {
 	if (message == SUCCESSFULL) {
-		/* code */
 	} else if (message == FAILED) {
-		/* code */
 	}
 	
-	//See other file for code
+	//See other file/AT Commands for code
 }
 
 /*
@@ -626,7 +624,7 @@ void callServer(transmitMessage message) {
 int main(void) {
 	setup();
     while (1) {
-		//enterSleep(); <-- this is called in the final version of the programm only main the main while function
+		enterSleep(); //<-- this is called in the final version of the programm only main the main while function
     }
     
     return 0;

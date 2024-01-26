@@ -31,8 +31,8 @@ compile:
 upload:
 	avrdude -v -p $(DEVICE) -c $(PROGRAMMER) -P $(PORT) -b $(BAUD) -U flash:w:$(BUILDDIR)$(FILENAME).hex:i
 
-#Removes the unneeded files
-#clean:
-#	rm $(FILENAME).o
-#	rm $(FILENAME).elf
-#	rm $(FILENAME).hex
+Removes the unneeded files
+clean:
+	rm $(FILENAME).o
+	rm $(FILENAME).elf
+	rm $(FILENAME).hex
